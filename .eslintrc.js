@@ -26,17 +26,15 @@ module.exports = {
     "plugin:import/errors",
     "plugin:import/warnings",
     "plugin:import/typescript",
-    "plugin:prettier/recommended", // מפעיל גם כלל "prettier/prettier"
+    "plugin:prettier/recommended",
     "prettier",
   ],
   settings: { react: { version: "detect" } },
   rules: {
-    /** ניקיון בסיסי */
     "no-trailing-spaces": "error",
-    "no-multiple-empty-lines": ["error", { max: 1, maxEOF: 0 }], // ← מקסימום שורה ריקה אחת
+    "no-multiple-empty-lines": ["error", { max: 1, maxEOF: 0 }],
     "eol-last": ["error", "always"],
 
-    /** יבואי מודולים */
     "import/order": [
       "warn",
       {
@@ -56,10 +54,9 @@ module.exports = {
     ],
     "import/no-duplicates": "warn",
 
-    /** React/TS הרגלים טובים */
     "react/jsx-uses-react": "off",
-    "react/react-in-jsx-scope": "off", // React 17+
-    "react/prop-types": "off", // משתמשים ב-TS
+    "react/react-in-jsx-scope": "off",
+    "react/prop-types": "off",
     "@typescript-eslint/no-unused-vars": [
       "warn",
       { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
@@ -69,14 +66,13 @@ module.exports = {
       { prefer: "type-imports" },
     ],
 
-    /** Prettier כבדיקת פורמט */
     "prettier/prettier": "error",
   },
   overrides: [
     {
       files: ["*.ts", "*.tsx"],
       rules: {
-        "no-undef": "off", // TS כבר מטפל בזה
+        "no-undef": "off",
       },
     },
     {
