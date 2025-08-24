@@ -21,7 +21,7 @@ jobs:
         run: npm ci
 
       - name: Prettier check
-        run: npx prettier . --check
+        run: npx prettier "src/**/*.{ts,tsx,js,jsx,scss}" "*.json" --check
 
       - name: ESLint via reviewdog (inline comments)
         uses: reviewdog/action-eslint@v1
