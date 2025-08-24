@@ -1,7 +1,8 @@
 import React from "react";
+
+import styles from "./app.module.scss";
 import logo from "./logo.svg";
 import "./App.css";
-import styles from "./app.module.scss";
 
 function App() {
   return (
