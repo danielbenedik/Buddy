@@ -1,0 +1,38 @@
+name: PR Lint & Type Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Prettier check
+        run: npx prettier . --check
+
+      - name: ESLint via reviewdog (inline comments)
+        uses: reviewdog/action-eslint@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          reporter: github-pr-review
+          level: error
+          eslint_flags: ". --ext .ts,.tsx,.js,.jsx"
+
+      - name: TypeScript type check
+        run: npx tsc --noEmit
+
+      - name: Test
+        run: npm test -- --ci --watchAll=false
