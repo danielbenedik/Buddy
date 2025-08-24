@@ -1,0 +1,7 @@
+.eslintrc.js
+*.config.js
+*.config.cjs
+node_modules/
+build/
+dist/
+coverage/
