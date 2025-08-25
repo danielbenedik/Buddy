@@ -6,7 +6,7 @@ import "./App.css";
 function App() {
   return (
     <div className={styles.container}>
-      <header className="App-header">Daniel</header>
+      <header className="App-header">Daniel check</header>
     </div>
   );
 }
