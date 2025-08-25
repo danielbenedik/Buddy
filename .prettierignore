@@ -1,0 +1,3 @@
+# ignore these in Prettier checks
+.github/workflows/*
+public/*
