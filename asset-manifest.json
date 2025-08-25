@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/Buddy/static/css/main.151f7969.css",
+    "main.js": "/Buddy/static/js/main.3f22945f.js",
+    "static/js/453.66bc3efc.chunk.js": "/Buddy/static/js/453.66bc3efc.chunk.js",
+    "index.html": "/Buddy/index.html",
+    "main.151f7969.css.map": "/Buddy/static/css/main.151f7969.css.map",
+    "main.3f22945f.js.map": "/Buddy/static/js/main.3f22945f.js.map",
+    "453.66bc3efc.chunk.js.map": "/Buddy/static/js/453.66bc3efc.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.151f7969.css",
+    "static/js/main.3f22945f.js"
+  ]
+}
