@@ -94,5 +94,6 @@ module.exports = {
     "coverage/",
     "*.config.js",
     "*.config.cjs",
+    "*.json",
   ],
 };
