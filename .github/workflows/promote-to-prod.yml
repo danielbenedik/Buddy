@@ -1,0 +1,41 @@
+name: Promote staging to prod
+
+on:
+  workflow_dispatch: {}   # manual button in the Actions tab
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout gh-pages
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages
+          persist-credentials: true
+
+      - name: Promote /stg → /
+        shell: bash
+        run: |
+          cd gh-pages
+
+          # safety: ensure stg exists and has an index.html
+          test -f stg/index.html || { echo "stg build not found"; exit 1; }
+
+          # keep .git and stg, wipe everything else at root
+          shopt -s extglob dotglob
+          rm -rf !(stg|.git)
+
+          # copy stg into root (prod)
+          cp -r stg/* .
+
+          touch .nojekyll
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Nothing to promote."
+          else
+            git -c user.name="github-actions[bot]" \
+                -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+                commit -m "Promote staging to prod"
+            git push origin gh-pages
+          fi
