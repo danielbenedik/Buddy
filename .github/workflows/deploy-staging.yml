@@ -10,7 +10,6 @@ permissions:
 jobs:
   build-and-publish-stg:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
@@ -24,10 +23,11 @@ jobs:
       - name: Install
         run: npm ci
 
-      - name: Build
+      - name: Build (CRA) with staging base
+        env:
+          PUBLIC_URL: "/Buddy/stg/"
         run: |
           npm run build
-          # SPA fallback (CRA). For Vite: cp dist/index.html dist/404.html
           cp build/index.html build/404.html
 
       - name: Checkout gh-pages
@@ -35,7 +35,7 @@ jobs:
         with:
           ref: gh-pages
           path: gh-pages
-          token: ${{ secrets.GITHUB_TOKEN }}   # <-- add this
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update /stg with latest build
         shell: bash

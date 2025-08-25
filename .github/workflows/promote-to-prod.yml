@@ -1,38 +1,56 @@
-name: Promote staging to prod
+name: Promote to prod
 
 on:
-  workflow_dispatch: {}  # manual button in the Actions tab
+  workflow_dispatch: {}
 
 permissions:
-  contents: write        # allow pushing to gh-pages
+  contents: write
 
 jobs:
   promote:
     runs-on: ubuntu-latest
     steps:
+      # Checkout source (main) to build prod
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: src
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: src/package-lock.json
+
+      - name: Install
+        working-directory: src
+        run: npm ci
+
+      - name: Build (CRA) with prod base
+        working-directory: src
+        env:
+          PUBLIC_URL: "/Buddy/"
+        run: |
+          npm run build
+          cp build/index.html build/404.html
+
+      # Checkout gh-pages, replace root with the new prod build (keep /stg)
       - name: Checkout gh-pages
         uses: actions/checkout@v4
         with:
           ref: gh-pages
           path: gh-pages
-          token: ${{ secrets.GITHUB_TOKEN }}  # required to push
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Promote /stg to /
+      - name: Publish prod to root
         shell: bash
         run: |
-          set -euo pipefail
           cd gh-pages
-
-          # safety: ensure stg exists and has an index.html
-          test -f stg/index.html || { echo "stg build not found"; exit 1; }
-
-          # keep .git and stg, wipe everything else at root
           shopt -s extglob dotglob
-          rm -rf !(stg|.git)
-
-          # copy stg into root (prod)
-          cp -r stg/* .
-
+          rm -rf !(stg|.git)            # keep /stg and .git
+          cp -r ../src/build/* ./
           touch .nojekyll
           git add -A
           if git diff --cached --quiet; then
@@ -40,6 +58,6 @@ jobs:
           else
             git -c user.name="github-actions[bot]" \
                 -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
-                commit -m "Promote staging to prod"
+                commit -m "Promote to prod"
             git push origin gh-pages
           fi
