@@ -1,56 +1,45 @@
-name: Deploy staging to /stg
+name: Promote staging to prod
 
 on:
-  push:
-    branches: [ main ]
+  workflow_dispatch: {}  # manual button in the Actions tab
 
 permissions:
-  contents: write
+  contents: write        # allow pushing to gh-pages
 
 jobs:
-  build-and-publish-stg:
+  promote:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout source
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-
-      - name: Install
-        run: npm ci
-
-      - name: Build
-        run: |
-          npm run build
-          # SPA fallback (CRA). For Vite: cp dist/index.html dist/404.html
-          cp build/index.html build/404.html
-
       - name: Checkout gh-pages
         uses: actions/checkout@v4
         with:
           ref: gh-pages
           path: gh-pages
-          token: ${{ secrets.GITHUB_TOKEN }}   # <-- add this
+          token: ${{ secrets.GITHUB_TOKEN }}  # required to push
 
-      - name: Update /stg with latest build
+      - name: Promote /stg to /
         shell: bash
         run: |
-          rm -rf gh-pages/stg
-          mkdir -p gh-pages/stg
-          cp -r build/* gh-pages/stg/
-          touch gh-pages/.nojekyll
+          set -euo pipefail
           cd gh-pages
+
+          # safety: ensure stg exists and has an index.html
+          test -f stg/index.html || { echo "stg build not found"; exit 1; }
+
+          # keep .git and stg, wipe everything else at root
+          shopt -s extglob dotglob
+          rm -rf !(stg|.git)
+
+          # copy stg into root (prod)
+          cp -r stg/* .
+
+          touch .nojekyll
           git add -A
           if git diff --cached --quiet; then
-            echo "No changes to commit."
+            echo "Nothing to promote."
           else
             git -c user.name="github-actions[bot]" \
                 -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
-                commit -m "Update staging from ${GITHUB_SHA}"
+                commit -m "Promote staging to prod"
             git push origin gh-pages
           fi
