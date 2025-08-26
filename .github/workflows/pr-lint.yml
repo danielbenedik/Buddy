@@ -3,7 +3,7 @@ name: PR Lint & Type Check
 on:
   pull_request:
     types: [opened, synchronize, reopened]
-d
+
 jobs:
   lint:
     runs-on: ubuntu-latest
