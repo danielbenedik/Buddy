@@ -1,46 +1,56 @@
-# Getting Started with Create React App
+# Buddy
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+> [Balance Money App ]
 
-## Available Scripts
+---
 
-In the project directory, you can run:
+## 🚀 Environments
 
-### `npm start`
+We use **GitHub Pages** with two environments:
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+- **Staging**  
+  Automatically deployed from the `main` branch.  
+  👉 [https://danielbenedik.github.io/Buddy/stg/](https://danielbenedik.github.io/Buddy/stg/)
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+- **Production**  
+  Manual promotion from staging.  
+  👉 [https://danielbenedik.github.io/Buddy/](https://danielbenedik.github.io/Buddy/)
 
-### `npm test`
+### Deployment Flow
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+1. Merge PR → `main` → GitHub Actions builds with  
+   `PUBLIC_URL=/Buddy/stg/` → deploys to `/stg/`
+2. When staging is verified, run the **Promote to prod** workflow from the  
+   **Actions** tab → builds with `PUBLIC_URL=/Buddy/` → deploys to `/`
 
-### `npm run build`
+---
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## ⚙️ CI/CD
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### Pull Request Checks
+Every PR to `main` triggers:
+- **Prettier** – formatting check
+- **ESLint** – lint rules for React + TypeScript + Prettier
+- **TypeScript** – type checking (`tsc --noEmit`)
+- **Tests** – run via `npm test -- --ci --watchAll=false`
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Merging is blocked until checks pass (or bypassed by an admin).
 
-### `npm run eject`
+### GitHub Actions Workflows
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+- **Deploy staging to /stg**  
+  Runs on push to `main`, builds app with `PUBLIC_URL=/Buddy/stg/` and updates `/stg`.
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+- **Promote to prod**  
+  Manual workflow (`workflow_dispatch`). Builds with `PUBLIC_URL=/Buddy/` and publishes to `/`.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+- **PR Lint & Type Check**  
+  Runs on pull requests, enforces code quality.
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+---
 
-## Learn More
+## 🛠️ Development
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
+### Install dependencies
+```bash
+npm install
