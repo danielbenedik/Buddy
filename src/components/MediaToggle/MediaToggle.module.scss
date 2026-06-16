@@ -1,0 +1,36 @@
+@use "../../styles/tokens" as t;
+
+.toggle {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  background: t.$surface-raised;
+  border-radius: 999px;
+}
+
+.option,
+.active,
+.disabled {
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 5px 16px;
+  border-radius: 999px;
+  background: transparent;
+  color: t.$text-muted;
+  transition: background 0.15s ease;
+}
+
+.option:hover {
+  color: t.$text;
+}
+
+.active {
+  background: t.$accent;
+  color: t.$text;
+}
+
+.disabled {
+  color: t.$text-dim;
+  cursor: not-allowed;
+}

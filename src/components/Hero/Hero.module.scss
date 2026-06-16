@@ -1,0 +1,95 @@
+@use "../../styles/tokens" as t;
+
+.hero {
+  display: flex;
+  align-items: stretch;
+  gap: 28px;
+  padding: 40px 4vw;
+  margin-bottom: 12px;
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+  max-width: 540px;
+}
+
+.eyebrow {
+  color: t.$accent;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.title {
+  margin: 0 0 6px;
+  font-size: 42px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: t.$text;
+}
+
+.meta {
+  margin: 0 0 20px;
+  font-size: 15px;
+  color: t.$text-muted;
+}
+
+.cta {
+  align-self: flex-start;
+  border: none;
+  cursor: pointer;
+  padding: 11px 26px;
+  border-radius: t.$radius-sm;
+  background: t.$text;
+  color: t.$bg;
+  font-size: 15px;
+  font-weight: 500;
+  transition: opacity 0.15s ease;
+}
+
+.cta:hover {
+  opacity: 0.85;
+}
+
+.cover,
+.coverPlaceholder {
+  flex: 0 0 auto;
+  width: 200px;
+  height: 300px;
+  border-radius: t.$radius-md;
+  object-fit: cover;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+}
+
+.coverPlaceholder {
+  display: flex;
+  align-items: flex-end;
+  padding: 16px;
+  box-sizing: border-box;
+  color: t.$text;
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+@media (max-width: 640px) {
+  .hero {
+    flex-direction: column-reverse;
+    align-items: flex-start;
+  }
+
+  .title {
+    font-size: 32px;
+  }
+
+  .cover,
+  .coverPlaceholder {
+    width: 140px;
+    height: 210px;
+  }
+}
