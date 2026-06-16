@@ -26,6 +26,7 @@ jobs:
       - name: Build (CRA) with staging base
         env:
           PUBLIC_URL: "/Buddy/stg/"
+          REACT_APP_GEMINI_API_KEY: ${{ secrets.REACT_APP_GEMINI_API_KEY }}
         run: |
           npm run build
           cp build/index.html build/404.html

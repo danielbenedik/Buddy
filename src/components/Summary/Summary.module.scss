@@ -1,0 +1,41 @@
+@use "../../styles/tokens" as t;
+
+.summary {
+  min-height: 60px;
+}
+
+.text {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.7;
+  color: #e8e8e8;
+  white-space: pre-wrap;
+}
+
+.caret {
+  display: inline-block;
+  width: 8px;
+  height: 18px;
+  margin-left: 2px;
+  vertical-align: -3px;
+  background: t.$accent;
+  border-radius: 1px;
+  animation: blink 1s steps(2, start) infinite;
+}
+
+@keyframes blink {
+  to {
+    visibility: hidden;
+  }
+}
+
+.status,
+.error {
+  margin: 12px 0 0;
+  font-size: 14px;
+  color: t.$text-muted;
+}
+
+.error {
+  color: #ff6b73;
+}
