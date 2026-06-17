@@ -40,7 +40,7 @@ export function catalogPrompt(media: MediaType): string {
     `Each genre must contain exactly ${BOOKS_PER_GENRE} famous, real, widely-recognized ${noun}.`,
     `Also pick one separate, very famous "hero" ${media} to feature at the top.`,
     `Avoid duplicates across genres.`,
-    `Genre labels must be in English.`,
+    `Genre labels must be in English or Hebrew.`,
     `For each entry provide: the original title and ${creator} in English (for`,
     `lookup), the title translated to Hebrew (titleHe), the ${creator} name in`,
     `Hebrew (authorHe), and the release year.`,
@@ -51,8 +51,8 @@ export function summaryPrompt(book: Book, minutes: ReadingTime): string {
   const words = WORDS_BY_TIME[minutes];
   return [
     `ספר לי מחדש את הסיפור של הספר "${book.title}" מאת ${book.author}.`,
-    `אל תכתוב סיכום ניתוחי או ביקורת — ספר את העלילה עצמה בקצרה,`,
-    `כסיפור זורם מההתחלה ועד הסוף, עם האירועים המרכזיים והתפניות החשובות`,
+    `אל תכתוב סיכום ניתוחי או ביקורת — ספר את העלילה עצמה בקצרה בצורת סיפור כאילו אני קורא את הסיפור רק בצורתו הקצרה,`,
+    `תעשה את זה זורם מההתחלה ועד הסוף, עם האירועים המרכזיים והתפניות החשובות`,
     `לפי סדר התרחשותם.`,
     `כתוב בעברית בלבד, בערך ${words} מילים (קריאה של כ-${minutes} דקות).`,
     `התחל ישר בסיפור, בלי כותרות, בלי נקודות, ובלי הקדמות.`,
