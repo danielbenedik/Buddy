@@ -9,8 +9,8 @@ export const READING_TIMES: ReadingTime[] = [2, 5];
 
 // Approximate Hebrew word budget per reading time (~150 wpm).
 const WORDS_BY_TIME: Record<ReadingTime, number> = {
-  2: 300,
-  5: 750,
+  2: 500,
+  5: 1000,
 };
 
 const HOUR = 60 * 60 * 1000;

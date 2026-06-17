@@ -21,45 +21,58 @@ function Card({ book, onSelect }: CardProps) {
   };
 
   return (
-    <div className={styles.scene}>
-      <div className={`${styles.card} ${flipped ? styles.flipped : ""}`}>
-        <button
-          type="button"
-          className={`${styles.face} ${styles.front}`}
-          onClick={() => setFlipped(true)}
-          aria-label={`${book.title} — choose a reading time`}
-          aria-hidden={flipped}
-          tabIndex={flipped ? -1 : 0}
-        >
-          <BookCover
-            book={book}
-            imgClassName={styles.cover}
-            placeholderClassName={styles.placeholder}
-          />
-        </button>
-
-        <div className={`${styles.face} ${styles.back}`} aria-hidden={!flipped}>
+    <div className={styles.item}>
+      <span
+        className={styles.titleChip}
+        dir="rtl"
+        lang="he"
+        title={book.titleHe}
+      >
+        {book.titleHe}
+      </span>
+      <div className={styles.scene}>
+        <div className={`${styles.card} ${flipped ? styles.flipped : ""}`}>
           <button
             type="button"
-            className={styles.flipBack}
-            onClick={() => setFlipped(false)}
-            aria-label="Back to cover"
-            tabIndex={flipped ? 0 : -1}
+            className={`${styles.face} ${styles.front}`}
+            onClick={() => setFlipped(true)}
+            aria-label={`${book.title} — choose a reading time`}
+            aria-hidden={flipped}
+            tabIndex={flipped ? -1 : 0}
           >
-            ↩
+            <BookCover
+              book={book}
+              imgClassName={styles.cover}
+              placeholderClassName={styles.placeholder}
+            />
           </button>
-          <span className={styles.want}>I want</span>
-          {READING_TIMES.map((minutes) => (
+
+          <div
+            className={`${styles.face} ${styles.back}`}
+            aria-hidden={!flipped}
+          >
             <button
-              key={minutes}
               type="button"
-              className={styles.option}
-              onClick={() => choose(minutes)}
+              className={styles.flipBack}
+              onClick={() => setFlipped(false)}
+              aria-label="Back to cover"
               tabIndex={flipped ? 0 : -1}
             >
-              Story in {minutes} minutes
+              ↩
             </button>
-          ))}
+            <span className={styles.want}>I want</span>
+            {READING_TIMES.map((minutes) => (
+              <button
+                key={minutes}
+                type="button"
+                className={styles.option}
+                onClick={() => choose(minutes)}
+                tabIndex={flipped ? 0 : -1}
+              >
+                Story in {minutes} minutes
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </div>
