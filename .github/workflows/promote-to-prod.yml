@@ -32,7 +32,7 @@ jobs:
         working-directory: src
         env:
           PUBLIC_URL: "/Buddy/"
-          REACT_APP_GEMINI_API_KEY: ${{ secrets.REACT_APP_GEMINI_API_KEY }}
+          REACT_APP_GEMINI_PROXY_URL: ${{ vars.REACT_APP_GEMINI_PROXY_URL }}
         run: |
           npm run build
           cp build/index.html build/404.html
