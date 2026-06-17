@@ -20,8 +20,18 @@ import type {
 } from "../types/catalog";
 
 const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
+const proxyUrl = process.env.REACT_APP_GEMINI_PROXY_URL;
 
-const ai = new GoogleGenAI({ apiKey: apiKey ?? "" });
+// When a proxy URL is set (the deployed site), route Gemini calls through it
+// so the real key stays server-side. With no proxy (local dev) we call Gemini
+// directly using the key from .env.local.
+const ai = new GoogleGenAI(
+  proxyUrl
+    ? { apiKey: "proxy", httpOptions: { baseUrl: proxyUrl } }
+    : { apiKey: apiKey ?? "" },
+);
+
+const isConfigured = Boolean(proxyUrl || apiKey);
 
 const entrySchema = {
   type: Type.OBJECT,
@@ -86,12 +96,14 @@ function toBook(entry: RawEntry): Book {
 }
 
 export function hasApiKey(): boolean {
-  return Boolean(apiKey);
+  return isConfigured;
 }
 
 export async function getCatalog(media: MediaType): Promise<Catalog> {
-  if (!apiKey) {
-    throw new Error("Missing REACT_APP_GEMINI_API_KEY");
+  if (!isConfigured) {
+    throw new Error(
+      "Missing REACT_APP_GEMINI_API_KEY or REACT_APP_GEMINI_PROXY_URL",
+    );
   }
 
   const response = await ai.models.generateContent({
@@ -141,8 +153,10 @@ export async function* generateSummaryStream(
   book: Book,
   minutes: ReadingTime,
 ): AsyncGenerator<string> {
-  if (!apiKey) {
-    throw new Error("Missing REACT_APP_GEMINI_API_KEY");
+  if (!isConfigured) {
+    throw new Error(
+      "Missing REACT_APP_GEMINI_API_KEY or REACT_APP_GEMINI_PROXY_URL",
+    );
   }
 
   const stream = await ai.models.generateContentStream({
