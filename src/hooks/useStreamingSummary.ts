@@ -4,12 +4,15 @@ import { generateSummaryStream } from "../services/gemini";
 import { getCached, setCached } from "../utils/cache";
 import { cacheKeys, SUMMARY_TTL } from "../utils/constants";
 
-import type { Book } from "../types/catalog";
+import type { Book, ReadingTime } from "../types/catalog";
 import type { SummaryState } from "../types/summary";
 
 const IDLE: SummaryState = { text: "", status: "idle" };
 
-export function useStreamingSummary(book: Book | null): SummaryState {
+export function useStreamingSummary(
+  book: Book | null,
+  minutes: ReadingTime,
+): SummaryState {
   const [state, setState] = useState<SummaryState>(IDLE);
 
   useEffect(() => {
@@ -19,7 +22,7 @@ export function useStreamingSummary(book: Book | null): SummaryState {
     }
 
     let cancelled = false;
-    const key = cacheKeys.summary(book.id);
+    const key = cacheKeys.summary(book.id, minutes);
 
     const cached = getCached<string>(key);
     if (cached) {
@@ -32,7 +35,7 @@ export function useStreamingSummary(book: Book | null): SummaryState {
     (async () => {
       try {
         let full = "";
-        for await (const piece of generateSummaryStream(book)) {
+        for await (const piece of generateSummaryStream(book, minutes)) {
           if (cancelled) return;
           full += piece;
           setState({ text: full, status: "streaming" });
@@ -54,7 +57,7 @@ export function useStreamingSummary(book: Book | null): SummaryState {
     return () => {
       cancelled = true;
     };
-  }, [book]);
+  }, [book, minutes]);
 
   return state;
 }

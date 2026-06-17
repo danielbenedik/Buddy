@@ -1,20 +1,29 @@
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
 
+import { READING_TIMES } from "../../utils/constants";
 import BookCover from "../BookCover/BookCover";
 import Summary from "../Summary/Summary";
 
 import styles from "./Modal.module.scss";
 
-import type { Book } from "../../types/catalog";
+import type { Book, ReadingTime } from "../../types/catalog";
 
 interface ModalProps {
   book: Book;
+  minutes: ReadingTime;
   genreLabel?: string;
+  onMinutesChange: (minutes: ReadingTime) => void;
   onClose: () => void;
 }
 
-function Modal({ book, genreLabel, onClose }: ModalProps) {
+function Modal({
+  book,
+  minutes,
+  genreLabel,
+  onMinutesChange,
+  onClose,
+}: ModalProps) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -56,19 +65,32 @@ function Modal({ book, genreLabel, onClose }: ModalProps) {
             placeholderClassName={styles.coverPlaceholder}
           />
           <div className={styles.headerInfo}>
-            <h2 className={styles.title}>{book.title}</h2>
-            <p className={styles.meta}>
-              {book.author}
+            <h2 className={styles.title} dir="rtl" lang="he">
+              {book.titleHe}
+            </h2>
+            <p className={styles.meta} dir="rtl" lang="he">
+              {book.authorHe}
               {book.year ? ` · ${book.year}` : ""}
             </p>
             <div className={styles.tags}>
               {genreLabel && <span className={styles.genre}>{genreLabel}</span>}
-              <span className={styles.read}>2 min read</span>
+              <div className={styles.times}>
+                {READING_TIMES.map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    className={m === minutes ? styles.timeActive : styles.time}
+                    onClick={() => onMinutesChange(m)}
+                  >
+                    {m} min
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
         <div className={styles.body}>
-          <Summary book={book} />
+          <Summary book={book} minutes={minutes} />
         </div>
       </div>
     </div>,

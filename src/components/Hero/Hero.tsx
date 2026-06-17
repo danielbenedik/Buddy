@@ -1,12 +1,13 @@
+import { READING_TIMES } from "../../utils/constants";
 import BookCover from "../BookCover/BookCover";
 
 import styles from "./Hero.module.scss";
 
-import type { Book } from "../../types/catalog";
+import type { Book, ReadingTime } from "../../types/catalog";
 
 interface HeroProps {
   book: Book;
-  onSelect: (book: Book) => void;
+  onSelect: (book: Book, minutes: ReadingTime) => void;
 }
 
 function Hero({ book, onSelect }: HeroProps) {
@@ -14,18 +15,26 @@ function Hero({ book, onSelect }: HeroProps) {
     <section className={styles.hero}>
       <div className={styles.info}>
         <span className={styles.eyebrow}>Featured today</span>
-        <h1 className={styles.title}>{book.title}</h1>
-        <p className={styles.meta}>
-          {book.author}
+        <h1 className={styles.title} dir="rtl" lang="he">
+          {book.titleHe}
+        </h1>
+        <p className={styles.meta} dir="rtl" lang="he">
+          {book.authorHe}
           {book.year ? ` · ${book.year}` : ""}
         </p>
-        <button
-          type="button"
-          className={styles.cta}
-          onClick={() => onSelect(book)}
-        >
-          ▶ Read summary
-        </button>
+        <span className={styles.want}>I want</span>
+        <div className={styles.options}>
+          {READING_TIMES.map((minutes) => (
+            <button
+              key={minutes}
+              type="button"
+              className={styles.cta}
+              onClick={() => onSelect(book, minutes)}
+            >
+              Story in {minutes} minutes
+            </button>
+          ))}
+        </div>
       </div>
       <BookCover
         book={book}

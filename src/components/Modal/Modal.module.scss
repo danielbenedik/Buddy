@@ -97,25 +97,46 @@
 .tags {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
   margin-top: 14px;
 }
 
-.genre,
-.read {
+.genre {
   font-size: 12px;
   padding: 4px 12px;
   border-radius: 999px;
-}
-
-.genre {
   background: t.$accent-soft;
   color: #ff6b73;
 }
 
-.read {
+.times {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
   background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+}
+
+.time,
+.timeActive {
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: transparent;
   color: t.$text-muted;
+  transition: background 0.15s ease;
+}
+
+.time:hover {
+  color: t.$text;
+}
+
+.timeActive {
+  background: t.$accent;
+  color: t.$text;
 }
 
 .body {
