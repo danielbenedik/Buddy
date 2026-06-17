@@ -39,11 +39,23 @@
   color: t.$text-muted;
 }
 
+.want {
+  font-size: 14px;
+  font-weight: 500;
+  color: t.$text-muted;
+  margin-bottom: 10px;
+}
+
+.options {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 .cta {
-  align-self: flex-start;
   border: none;
   cursor: pointer;
-  padding: 11px 26px;
+  padding: 11px 22px;
   border-radius: t.$radius-sm;
   background: t.$text;
   color: t.$bg;
@@ -75,6 +87,7 @@
   font-size: 22px;
   font-weight: 500;
   line-height: 1.2;
+  text-align: right;
 }
 
 @media (max-width: 640px) {

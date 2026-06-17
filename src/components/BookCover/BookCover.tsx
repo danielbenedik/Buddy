@@ -33,8 +33,10 @@ function BookCover({
     <span
       className={placeholderClassName}
       style={{ background: placeholderColor(book.id) }}
+      dir="rtl"
+      lang="he"
     >
-      {book.title}
+      {book.titleHe}
     </span>
   );
 }

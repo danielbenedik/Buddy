@@ -2,11 +2,11 @@ import Card from "../Card/Card";
 
 import styles from "./Row.module.scss";
 
-import type { Book, Genre } from "../../types/catalog";
+import type { Book, Genre, ReadingTime } from "../../types/catalog";
 
 interface RowProps {
   genre: Genre;
-  onSelect: (book: Book) => void;
+  onSelect: (book: Book, minutes: ReadingTime) => void;
 }
 
 function Row({ genre, onSelect }: RowProps) {

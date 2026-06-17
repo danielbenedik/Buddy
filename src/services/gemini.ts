@@ -11,7 +11,13 @@ import {
 
 import { fetchCoverUrl } from "./covers";
 
-import type { Book, Catalog, Genre, MediaType } from "../types/catalog";
+import type {
+  Book,
+  Catalog,
+  Genre,
+  MediaType,
+  ReadingTime,
+} from "../types/catalog";
 
 const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
 
@@ -22,9 +28,11 @@ const entrySchema = {
   properties: {
     title: { type: Type.STRING },
     author: { type: Type.STRING },
+    titleHe: { type: Type.STRING },
+    authorHe: { type: Type.STRING },
     year: { type: Type.INTEGER },
   },
-  required: ["title", "author"],
+  required: ["title", "author", "titleHe", "authorHe"],
 };
 
 const catalogSchema = {
@@ -49,6 +57,8 @@ const catalogSchema = {
 interface RawEntry {
   title: string;
   author: string;
+  titleHe: string;
+  authorHe: string;
   year?: number;
 }
 
@@ -69,6 +79,8 @@ function toBook(entry: RawEntry): Book {
     id: slugify(`${entry.title}-${entry.author}`),
     title: entry.title,
     author: entry.author,
+    titleHe: entry.titleHe || entry.title,
+    authorHe: entry.authorHe || entry.author,
     year: entry.year,
   };
 }
@@ -127,6 +139,7 @@ export async function getCatalog(media: MediaType): Promise<Catalog> {
 
 export async function* generateSummaryStream(
   book: Book,
+  minutes: ReadingTime,
 ): AsyncGenerator<string> {
   if (!apiKey) {
     throw new Error("Missing REACT_APP_GEMINI_API_KEY");
@@ -134,7 +147,7 @@ export async function* generateSummaryStream(
 
   const stream = await ai.models.generateContentStream({
     model: MODEL_ID,
-    contents: summaryPrompt(book),
+    contents: summaryPrompt(book, minutes),
   });
 
   for await (const chunk of stream) {

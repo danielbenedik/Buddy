@@ -7,13 +7,25 @@ import type { Catalog } from "./types/catalog";
 
 const fakeCatalog: Catalog = {
   media: "book",
-  hero: { id: "dune-frank-herbert", title: "Dune", author: "Frank Herbert" },
+  hero: {
+    id: "dune-frank-herbert",
+    title: "Dune",
+    author: "Frank Herbert",
+    titleHe: "חולית",
+    authorHe: "פרנק הרברט",
+  },
   genres: [
     {
       id: "classics",
       label: "Classics",
       books: [
-        { id: "1984-george-orwell", title: "1984", author: "George Orwell" },
+        {
+          id: "1984-george-orwell",
+          title: "1984",
+          author: "George Orwell",
+          titleHe: "1984",
+          authorHe: "ג'ורג' אורוול",
+        },
       ],
     },
   ],
