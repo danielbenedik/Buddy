@@ -12,13 +12,19 @@ const ALLOWED_ORIGINS = [
   "https://danielbenedik.github.io",
 ];
 
-function corsHeaders(origin) {
+function corsHeaders(origin, request) {
   const allowed = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[1];
+  // Reflect whatever headers the browser asks to send. WebKit (Safari/iOS)
+  // includes User-Agent in the CORS preflight — a fixed list misses it and the
+  // request is blocked. Echoing the requested headers allows it cleanly.
+  const requested =
+    request && request.headers.get("Access-Control-Request-Headers");
   return {
     "Access-Control-Allow-Origin": allowed,
     "Access-Control-Allow-Methods": "POST, OPTIONS",
     "Access-Control-Allow-Headers":
-      "Content-Type, x-goog-api-key, x-goog-api-client",
+      requested ||
+      "Content-Type, x-goog-api-key, x-goog-api-client, User-Agent",
     "Access-Control-Max-Age": "86400",
     Vary: "Origin",
   };
@@ -27,7 +33,7 @@ function corsHeaders(origin) {
 export default {
   async fetch(request, env) {
     const origin = request.headers.get("Origin") || "";
-    const cors = corsHeaders(origin);
+    const cors = corsHeaders(origin, request);
 
     // CORS preflight
     if (request.method === "OPTIONS") {
