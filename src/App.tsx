@@ -26,9 +26,18 @@ function App() {
   const handleSelect = (book: Book, minutes: ReadingTime) =>
     setSelected({ book, minutes });
 
+  const handleMediaChange = (next: MediaType) => {
+    setSelected(null);
+    setMedia(next);
+  };
+
   return (
     <div className={styles.app}>
-      <Navbar media={media} onMediaChange={setMedia} onSelect={handleSelect} />
+      <Navbar
+        media={media}
+        onMediaChange={handleMediaChange}
+        onSelect={handleSelect}
+      />
 
       {loading && <div className={styles.center}>Loading your shelf…</div>}
 

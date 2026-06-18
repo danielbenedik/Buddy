@@ -18,7 +18,7 @@ function Navbar({ media, onMediaChange, onSelect }: NavbarProps) {
         <span className={styles.logo}>BUDDY</span>
         <MediaToggle value={media} onChange={onMediaChange} />
       </div>
-      <Search onSelect={onSelect} />
+      <Search media={media} onSelect={onSelect} />
     </header>
   );
 }

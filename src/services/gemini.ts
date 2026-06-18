@@ -88,9 +88,10 @@ function slugify(value: string): string {
     .replace(/(^-|-$)/g, "");
 }
 
-function toBook(entry: RawEntry): Book {
+function toBook(entry: RawEntry, media: MediaType): Book {
   return {
     id: slugify(`${entry.title}-${entry.author}`),
+    media,
     title: entry.title,
     author: entry.author,
     titleHe: entry.titleHe || entry.title,
@@ -128,9 +129,15 @@ export async function getCatalog(media: MediaType): Promise<Catalog> {
   const genres: Genre[] = raw.genres.slice(0, GENRE_COUNT).map((genre) => ({
     id: slugify(genre.label),
     label: genre.label,
-    books: genre.books.slice(0, BOOKS_PER_GENRE).map(toBook),
+    books: genre.books.slice(0, BOOKS_PER_GENRE).map((e) => toBook(e, media)),
   }));
-  const hero = toBook(raw.hero);
+  const hero = toBook(raw.hero, media);
+
+  // Covers come from Open Library (books only); movies use the colored title
+  // tiles, so skip cover lookups for them.
+  if (media !== "book") {
+    return { media, hero, genres };
+  }
 
   // Resolve covers with capped concurrency — firing all at once makes Open
   // Library throttle the burst and most lookups come back empty.
@@ -165,20 +172,23 @@ const searchSchema = {
   required: ["results"],
 };
 
-export async function searchBooks(query: string): Promise<Book[]> {
+export async function searchTitles(
+  media: MediaType,
+  query: string,
+): Promise<Book[]> {
   if (!isConfigured) {
     throw new Error(
       "Missing REACT_APP_GEMINI_API_KEY or REACT_APP_GEMINI_PROXY_URL",
     );
   }
 
-  const cacheKey = cacheKeys.search(query);
+  const cacheKey = cacheKeys.search(media, query);
   const cached = getCached<Book[]>(cacheKey);
   if (cached) return cached;
 
   const response = await ai.models.generateContent({
     model: MODEL_ID,
-    contents: searchPrompt(query),
+    contents: searchPrompt(media, query),
     config: {
       responseMimeType: "application/json",
       responseSchema: searchSchema,
@@ -188,7 +198,7 @@ export async function searchBooks(query: string): Promise<Book[]> {
   const raw = JSON.parse(response.text ?? '{"results":[]}') as {
     results: RawEntry[];
   };
-  const books = (raw.results ?? []).slice(0, 3).map(toBook);
+  const books = (raw.results ?? []).slice(0, 3).map((e) => toBook(e, media));
   setCached(cacheKey, books, SEARCH_TTL);
   return books;
 }

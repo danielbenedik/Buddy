@@ -22,10 +22,9 @@ function MediaToggle({ value, onChange }: MediaToggleProps) {
       <button
         type="button"
         role="tab"
-        aria-selected={false}
-        className={styles.disabled}
-        disabled
-        title="Coming soon"
+        aria-selected={value === "movie"}
+        className={value === "movie" ? styles.active : styles.option}
+        onClick={() => onChange("movie")}
       >
         Movies
       </button>
