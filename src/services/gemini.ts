@@ -1,11 +1,15 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
+import { getCached, setCached } from "../utils/cache";
 import { mapLimit } from "../utils/concurrency";
 import {
   BOOKS_PER_GENRE,
+  cacheKeys,
   catalogPrompt,
   GENRE_COUNT,
   MODEL_ID,
+  SEARCH_TTL,
+  searchPrompt,
   summaryPrompt,
 } from "../utils/constants";
 
@@ -106,12 +110,16 @@ export async function getCatalog(media: MediaType): Promise<Catalog> {
     );
   }
 
+  // Random seed + high temperature so each (daily) regeneration yields a
+  // genuinely different set of books rather than the same predictable list.
+  const seed = Math.random().toString(36).slice(2, 10);
   const response = await ai.models.generateContent({
     model: MODEL_ID,
-    contents: catalogPrompt(media),
+    contents: catalogPrompt(media, seed),
     config: {
       responseMimeType: "application/json",
       responseSchema: catalogSchema,
+      temperature: 1.3,
     },
   });
 
@@ -147,6 +155,42 @@ export async function getCatalog(media: MediaType): Promise<Catalog> {
       books: genre.books.map(applyCover),
     })),
   };
+}
+
+const searchSchema = {
+  type: Type.OBJECT,
+  properties: {
+    results: { type: Type.ARRAY, items: entrySchema },
+  },
+  required: ["results"],
+};
+
+export async function searchBooks(query: string): Promise<Book[]> {
+  if (!isConfigured) {
+    throw new Error(
+      "Missing REACT_APP_GEMINI_API_KEY or REACT_APP_GEMINI_PROXY_URL",
+    );
+  }
+
+  const cacheKey = cacheKeys.search(query);
+  const cached = getCached<Book[]>(cacheKey);
+  if (cached) return cached;
+
+  const response = await ai.models.generateContent({
+    model: MODEL_ID,
+    contents: searchPrompt(query),
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: searchSchema,
+    },
+  });
+
+  const raw = JSON.parse(response.text ?? '{"results":[]}') as {
+    results: RawEntry[];
+  };
+  const books = (raw.results ?? []).slice(0, 3).map(toBook);
+  setCached(cacheKey, books, SEARCH_TTL);
+  return books;
 }
 
 export async function* generateSummaryStream(

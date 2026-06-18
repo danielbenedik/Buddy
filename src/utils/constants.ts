@@ -19,6 +19,7 @@ const DAY = 24 * HOUR;
 export const CATALOG_TTL = DAY;
 export const SUMMARY_TTL = 7 * DAY;
 export const COVER_TTL = 30 * DAY;
+export const SEARCH_TTL = 7 * DAY;
 
 export const cacheKeys = {
   catalog: (media: MediaType) => `buddy:catalog:${media}`,
@@ -26,24 +27,39 @@ export const cacheKeys = {
   summary: (bookId: string, minutes: ReadingTime) =>
     `buddy:summary:he:${minutes}:${bookId}`,
   cover: (bookId: string) => `buddy:cover:${bookId}`,
+  search: (query: string) => `buddy:search:${query.trim().toLowerCase()}`,
 };
 
-export function catalogPrompt(media: MediaType): string {
+export function catalogPrompt(media: MediaType, seed: string): string {
   const noun = media === "book" ? "books" : "movies";
   const creator = media === "book" ? "author" : "director";
   return [
     `Build a catalog of well-known ${noun} for a Netflix-style browsing app.`,
     `Return exactly ${GENRE_COUNT} genres.`,
-    `The FIRST genre must be the essential, most popular must-read ${noun} that`,
-    `everyone should read at least once — label it "Must-Read Favorites".`,
-    `The other ${GENRE_COUNT - 1} genres should be distinct, recognizable categories.`,
+    `The FIRST genre is essential, popular must-read ${noun} — label it "Must-Read Favorites".`,
+    `The other ${GENRE_COUNT - 1} genres should be distinct, recognizable categories,`,
+    `rotated and varied from the usual defaults.`,
     `Each genre must contain exactly ${BOOKS_PER_GENRE} famous, real, widely-recognized ${noun}.`,
     `Also pick one separate, very famous "hero" ${media} to feature at the top.`,
+    `Variation token: ${seed}. Produce a FRESH, genuinely different selection this`,
+    `time — do NOT default to the same predictable titles; rotate the genres and`,
+    `blend timeless classics with less-obvious but well-regarded works.`,
     `Avoid duplicates across genres.`,
     `Genre labels must be in English or Hebrew.`,
     `For each entry provide: the original title and ${creator} in English (for`,
     `lookup), the title translated to Hebrew (titleHe), the ${creator} name in`,
     `Hebrew (authorHe), and the release year.`,
+  ].join(" ");
+}
+
+export function searchPrompt(query: string): string {
+  return [
+    `A user is searching for a book with the query: "${query}".`,
+    `Return up to 3 real, well-known books that best match the query by title,`,
+    `author, series, or topic. For a series, include the most relevant entries.`,
+    `For each entry provide: the original title and author in English (for lookup),`,
+    `the title in Hebrew (titleHe), the author in Hebrew (authorHe), and the year.`,
+    `Return an empty list if nothing matches.`,
   ].join(" ");
 }
 

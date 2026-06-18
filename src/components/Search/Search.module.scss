@@ -1,0 +1,116 @@
+@use "../../styles/tokens" as t;
+
+.iconButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  background: transparent;
+  color: t.$text-muted;
+  padding: 4px;
+}
+
+.iconButton:hover {
+  color: t.$text;
+}
+
+.search {
+  position: relative;
+}
+
+.form {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 240px;
+  max-width: 52vw;
+  background: #1f1f1f;
+  border: 0.5px solid rgba(255, 255, 255, 0.25);
+  border-radius: t.$radius-md;
+  padding: 6px 10px;
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: t.$text;
+  font-size: 14px;
+}
+
+.input::placeholder {
+  color: t.$text-dim;
+}
+
+.submit {
+  display: flex;
+  align-items: center;
+  border: none;
+  cursor: pointer;
+  background: transparent;
+  color: t.$text-muted;
+  padding: 0;
+}
+
+.submit:hover {
+  color: t.$text;
+}
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 280px;
+  max-width: 70vw;
+  background: #1f1f1f;
+  border: 0.5px solid rgba(255, 255, 255, 0.12);
+  border-radius: t.$radius-md;
+  overflow: hidden;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+  z-index: 20;
+}
+
+.message {
+  padding: 12px 14px;
+  font-size: 13px;
+  color: t.$text-muted;
+}
+
+.result {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  border: none;
+  cursor: pointer;
+  background: transparent;
+  padding: 10px 14px;
+  text-align: right;
+  border-bottom: 0.5px solid rgba(255, 255, 255, 0.06);
+}
+
+.result:last-child {
+  border-bottom: none;
+}
+
+.result:hover,
+.result:focus-visible {
+  background: t.$accent-soft;
+  outline: none;
+}
+
+.resultTitle {
+  width: 100%;
+  font-size: 14px;
+  color: t.$text;
+}
+
+.resultMeta {
+  width: 100%;
+  font-size: 11px;
+  color: t.$text-dim;
+}
