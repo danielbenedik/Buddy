@@ -5,6 +5,7 @@ import Hero from "./components/Hero/Hero";
 import Modal from "./components/Modal/Modal";
 import Navbar from "./components/Navbar/Navbar";
 import Row from "./components/Row/Row";
+import Skeleton from "./components/Skeleton/Skeleton";
 import { useCatalog } from "./hooks/useCatalog";
 
 import type { Book, MediaType, ReadingTime } from "./types/catalog";
@@ -39,7 +40,7 @@ function App() {
         onSelect={handleSelect}
       />
 
-      {loading && <div className={styles.center}>Loading your shelf…</div>}
+      {loading && <Skeleton />}
 
       {error && (
         <div className={styles.center}>
