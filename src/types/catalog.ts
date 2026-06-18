@@ -4,7 +4,8 @@ export type ReadingTime = 2 | 5;
 
 export interface Book {
   id: string;
-  // English title/author are kept for cover lookup and a stable slug id.
+  media: MediaType;
+  // English title/author (or director) are kept for lookup and a stable slug id.
   title: string;
   author: string;
   // Hebrew display strings shown in the UI.

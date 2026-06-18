@@ -9,6 +9,7 @@ const fakeCatalog: Catalog = {
   media: "book",
   hero: {
     id: "dune-frank-herbert",
+    media: "book",
     title: "Dune",
     author: "Frank Herbert",
     titleHe: "חולית",
@@ -21,6 +22,7 @@ const fakeCatalog: Catalog = {
       books: [
         {
           id: "1984-george-orwell",
+          media: "book",
           title: "1984",
           author: "George Orwell",
           titleHe: "1984",

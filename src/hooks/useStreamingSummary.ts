@@ -22,7 +22,7 @@ export function useStreamingSummary(
     }
 
     let cancelled = false;
-    const key = cacheKeys.summary(book.id, minutes);
+    const key = cacheKeys.summary(book.media, book.id, minutes);
 
     const cached = getCached<string>(key);
     if (cached) {

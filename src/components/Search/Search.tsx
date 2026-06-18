@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 
-import { searchBooks } from "../../services/gemini";
+import { searchTitles } from "../../services/gemini";
 
 import styles from "./Search.module.scss";
 
-import type { Book, ReadingTime } from "../../types/catalog";
+import type { Book, MediaType, ReadingTime } from "../../types/catalog";
 
 interface SearchProps {
+  media: MediaType;
   onSelect: (book: Book, minutes: ReadingTime) => void;
 }
 
@@ -25,7 +26,7 @@ const MagnifierIcon = () => (
   </svg>
 );
 
-function Search({ onSelect }: SearchProps) {
+function Search({ media, onSelect }: SearchProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Book[] | null>(null);
@@ -70,7 +71,7 @@ function Search({ onSelect }: SearchProps) {
     setError(false);
     setResults(null);
     try {
-      setResults(await searchBooks(q));
+      setResults(await searchTitles(media, q));
     } catch {
       setError(true);
     } finally {

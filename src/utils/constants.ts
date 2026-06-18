@@ -23,11 +23,12 @@ export const SEARCH_TTL = 7 * DAY;
 
 export const cacheKeys = {
   catalog: (media: MediaType) => `buddy:catalog:${media}`,
-  // Keyed by reading time + "he" so each length/language is cached separately.
-  summary: (bookId: string, minutes: ReadingTime) =>
-    `buddy:summary:he:${minutes}:${bookId}`,
+  // Keyed by media + reading time + "he" so each variant is cached separately.
+  summary: (media: MediaType, bookId: string, minutes: ReadingTime) =>
+    `buddy:summary:${media}:he:${minutes}:${bookId}`,
   cover: (bookId: string) => `buddy:cover:${bookId}`,
-  search: (query: string) => `buddy:search:${query.trim().toLowerCase()}`,
+  search: (media: MediaType, query: string) =>
+    `buddy:search:${media}:${query.trim().toLowerCase()}`,
 };
 
 export function catalogPrompt(media: MediaType, seed: string): string {
@@ -36,7 +37,8 @@ export function catalogPrompt(media: MediaType, seed: string): string {
   return [
     `Build a catalog of well-known ${noun} for a Netflix-style browsing app.`,
     `Return exactly ${GENRE_COUNT} genres.`,
-    `The FIRST genre is essential, popular must-read ${noun} — label it "Must-Read Favorites".`,
+    `The FIRST genre is essential, popular must-${media === "book" ? "read" : "watch"} ${noun} —`,
+    `label it "${media === "book" ? "Must-Read Favorites" : "Must-Watch Favorites"}".`,
     `The other ${GENRE_COUNT - 1} genres should be distinct, recognizable categories,`,
     `rotated and varied from the usual defaults.`,
     `Each genre must contain exactly ${BOOKS_PER_GENRE} famous, real, widely-recognized ${noun}.`,
@@ -52,21 +54,27 @@ export function catalogPrompt(media: MediaType, seed: string): string {
   ].join(" ");
 }
 
-export function searchPrompt(query: string): string {
+export function searchPrompt(media: MediaType, query: string): string {
+  const noun = media === "book" ? "books" : "movies";
+  const creator = media === "book" ? "author" : "director";
   return [
-    `A user is searching for a book with the query: "${query}".`,
-    `Return up to 3 real, well-known books that best match the query by title,`,
-    `author, series, or topic. For a series, include the most relevant entries.`,
-    `For each entry provide: the original title and author in English (for lookup),`,
-    `the title in Hebrew (titleHe), the author in Hebrew (authorHe), and the year.`,
+    `A user is searching for a ${media} with the query: "${query}".`,
+    `Return up to 3 real, well-known ${noun} that best match the query by title,`,
+    `${creator}, series, or topic. For a series, include the most relevant entries.`,
+    `For each entry provide: the original title and ${creator} in English (for lookup),`,
+    `the title in Hebrew (titleHe), the ${creator} in Hebrew (authorHe), and the year.`,
     `Return an empty list if nothing matches.`,
   ].join(" ");
 }
 
 export function summaryPrompt(book: Book, minutes: ReadingTime): string {
   const words = WORDS_BY_TIME[minutes];
+  const subject =
+    book.media === "book"
+      ? `הספר "${book.title}" מאת ${book.author}`
+      : `הסרט "${book.title}" בבימוי ${book.author}`;
   return [
-    `ספר לי מחדש את הסיפור של הספר "${book.title}" מאת ${book.author}.`,
+    `ספר לי מחדש את הסיפור של ${subject}.`,
     `אל תכתוב סיכום ניתוחי או ביקורת — ספר את העלילה עצמה בקצרה בצורת סיפור כאילו אני קורא את הסיפור רק בצורתו הקצרה,`,
     `תעשה את זה זורם מההתחלה ועד הסוף, עם האירועים המרכזיים והתפניות החשובות`,
     `לפי סדר התרחשותם.`,
