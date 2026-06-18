@@ -28,7 +28,7 @@ function App() {
 
   return (
     <div className={styles.app}>
-      <Navbar media={media} onMediaChange={setMedia} />
+      <Navbar media={media} onMediaChange={setMedia} onSelect={handleSelect} />
 
       {loading && <div className={styles.center}>Loading your shelf…</div>}
 
