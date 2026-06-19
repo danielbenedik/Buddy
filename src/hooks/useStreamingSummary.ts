@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { generateSummaryStream } from "../services/gemini";
 import { getCached, setCached } from "../utils/cache";
@@ -9,11 +9,16 @@ import type { SummaryState } from "../types/summary";
 
 const IDLE: SummaryState = { text: "", status: "idle" };
 
+interface UseSummary extends SummaryState {
+  reload: () => void;
+}
+
 export function useStreamingSummary(
   book: Book | null,
   minutes: ReadingTime,
-): SummaryState {
+): UseSummary {
   const [state, setState] = useState<SummaryState>(IDLE);
+  const [reloadIndex, setReloadIndex] = useState(0);
 
   useEffect(() => {
     if (!book) {
@@ -57,7 +62,17 @@ export function useStreamingSummary(
     return () => {
       cancelled = true;
     };
+  }, [book, minutes, reloadIndex]);
+
+  const reload = useCallback(() => {
+    if (!book) return;
+    try {
+      localStorage.removeItem(cacheKeys.summary(book.media, book.id, minutes));
+    } catch {
+      // best-effort
+    }
+    setReloadIndex((i) => i + 1);
   }, [book, minutes]);
 
-  return state;
+  return { ...state, reload };
 }

@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
 
+import { useStreamingSummary } from "../../hooks/useStreamingSummary";
 import { READING_TIMES } from "../../utils/constants";
 import BookCover from "../BookCover/BookCover";
 import Summary from "../Summary/Summary";
@@ -17,6 +18,23 @@ interface ModalProps {
   onClose: () => void;
 }
 
+const RefreshIcon = () => (
+  <svg
+    viewBox="0 0 24 24"
+    width="16"
+    height="16"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M21 12a9 9 0 1 1-2.64-6.36" />
+    <path d="M21 3v6h-6" />
+  </svg>
+);
+
 function Modal({
   book,
   minutes,
@@ -24,6 +42,8 @@ function Modal({
   onMinutesChange,
   onClose,
 }: ModalProps) {
+  const { text, status, error, reload } = useStreamingSummary(book, minutes);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -86,11 +106,23 @@ function Modal({
                   </button>
                 ))}
               </div>
+              <button
+                type="button"
+                className={`${styles.refresh} ${
+                  status === "streaming" ? styles.spinning : ""
+                }`}
+                onClick={reload}
+                disabled={status === "streaming"}
+                aria-label="Regenerate summary"
+                title="Regenerate"
+              >
+                <RefreshIcon />
+              </button>
             </div>
           </div>
         </div>
         <div className={styles.body}>
-          <Summary book={book} minutes={minutes} />
+          <Summary text={text} status={status} error={error} />
         </div>
       </div>
     </div>,

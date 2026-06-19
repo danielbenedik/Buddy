@@ -67,6 +67,28 @@ export function searchPrompt(media: MediaType, query: string): string {
   ].join(" ");
 }
 
+export function genrePrompt(
+  media: MediaType,
+  label: string,
+  avoid: string[],
+): string {
+  const noun = media === "book" ? "books" : "movies";
+  const creator = media === "book" ? "author" : "director";
+  return [
+    `List exactly ${BOOKS_PER_GENRE} famous, real, widely-recognized ${noun}`,
+    `in the genre "${label}".`,
+    avoid.length
+      ? `Do NOT include any of these (already shown): ${avoid.join("; ")}.`
+      : "",
+    `Bring a fresh, different set of well-known titles.`,
+    `For each entry provide: the original title and ${creator} in English (for`,
+    `lookup), the title in Hebrew (titleHe), the ${creator} in Hebrew (authorHe),`,
+    `and the release year.`,
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
 export function summaryPrompt(book: Book, minutes: ReadingTime): string {
   const words = WORDS_BY_TIME[minutes];
   const subject =

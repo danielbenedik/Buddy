@@ -18,7 +18,7 @@ interface Selection {
 function App() {
   const [media, setMedia] = useState<MediaType>("book");
   const [selected, setSelected] = useState<Selection | null>(null);
-  const { catalog, loading, error } = useCatalog(media);
+  const { catalog, loading, error, refreshGenre } = useCatalog(media);
 
   const genreLabel = catalog?.genres.find((g) =>
     g.books.some((b) => b.id === selected?.book.id),
@@ -53,7 +53,12 @@ function App() {
         <main>
           <Hero book={catalog.hero} onSelect={handleSelect} />
           {catalog.genres.map((genre) => (
-            <Row key={genre.id} genre={genre} onSelect={handleSelect} />
+            <Row
+              key={genre.id}
+              genre={genre}
+              onSelect={handleSelect}
+              onRefresh={refreshGenre}
+            />
           ))}
         </main>
       )}

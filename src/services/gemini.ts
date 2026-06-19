@@ -7,6 +7,7 @@ import {
   cacheKeys,
   catalogPrompt,
   GENRE_COUNT,
+  genrePrompt,
   MODEL_ID,
   SEARCH_TTL,
   searchPrompt,
@@ -171,6 +172,43 @@ const searchSchema = {
   },
   required: ["results"],
 };
+
+export async function generateGenreBooks(
+  media: MediaType,
+  label: string,
+  avoid: string[],
+): Promise<Book[]> {
+  if (!isConfigured) {
+    throw new Error(
+      "Missing REACT_APP_GEMINI_API_KEY or REACT_APP_GEMINI_PROXY_URL",
+    );
+  }
+
+  const response = await ai.models.generateContent({
+    model: MODEL_ID,
+    contents: genrePrompt(media, label, avoid),
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: searchSchema,
+      temperature: 1.3,
+    },
+  });
+
+  const raw = JSON.parse(response.text ?? '{"results":[]}') as {
+    results: RawEntry[];
+  };
+  const books = (raw.results ?? [])
+    .slice(0, BOOKS_PER_GENRE)
+    .map((e) => toBook(e, media));
+
+  if (media !== "book") return books;
+
+  const covers = await mapLimit(books, 6, fetchCoverUrl);
+  return books.map((book, i) => {
+    const url = covers[i];
+    return url ? { ...book, coverUrl: url } : book;
+  });
+}
 
 export async function searchTitles(
   media: MediaType,
