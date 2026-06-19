@@ -1,4 +1,4 @@
-export type MediaType = "book" | "movie";
+export type MediaType = "book" | "movie" | "song";
 
 export type ReadingTime = 2 | 5;
 

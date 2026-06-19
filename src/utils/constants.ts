@@ -13,6 +13,26 @@ const WORDS_BY_TIME: Record<ReadingTime, number> = {
   5: 1000,
 };
 
+interface MediaInfo {
+  noun: string; // plural English noun used in prompts
+  creator: string; // author / director / artist
+  mustLabel: string; // label for the featured first genre
+}
+
+const MEDIA_INFO: Record<MediaType, MediaInfo> = {
+  book: { noun: "books", creator: "author", mustLabel: "Must-Read Favorites" },
+  movie: {
+    noun: "movies",
+    creator: "director",
+    mustLabel: "Must-Watch Favorites",
+  },
+  song: {
+    noun: "songs",
+    creator: "artist",
+    mustLabel: "Must-Listen Favorites",
+  },
+};
+
 const HOUR = 60 * 60 * 1000;
 const DAY = 24 * HOUR;
 
@@ -32,13 +52,12 @@ export const cacheKeys = {
 };
 
 export function catalogPrompt(media: MediaType, seed: string): string {
-  const noun = media === "book" ? "books" : "movies";
-  const creator = media === "book" ? "author" : "director";
+  const { noun, creator, mustLabel } = MEDIA_INFO[media];
   return [
     `Build a catalog of well-known ${noun} for a Netflix-style browsing app.`,
     `Return exactly ${GENRE_COUNT} genres.`,
-    `The FIRST genre is essential, popular must-${media === "book" ? "read" : "watch"} ${noun} —`,
-    `label it "${media === "book" ? "Must-Read Favorites" : "Must-Watch Favorites"}".`,
+    `The FIRST genre is the essential, most popular must-experience ${noun} —`,
+    `label it "${mustLabel}".`,
     `The other ${GENRE_COUNT - 1} genres should be distinct, recognizable categories,`,
     `rotated and varied from the usual defaults.`,
     `Each genre must contain exactly ${BOOKS_PER_GENRE} famous, real, widely-recognized ${noun}.`,
@@ -55,8 +74,7 @@ export function catalogPrompt(media: MediaType, seed: string): string {
 }
 
 export function searchPrompt(media: MediaType, query: string): string {
-  const noun = media === "book" ? "books" : "movies";
-  const creator = media === "book" ? "author" : "director";
+  const { noun, creator } = MEDIA_INFO[media];
   return [
     `A user is searching for a ${media} with the query: "${query}".`,
     `Return up to 3 real, well-known ${noun} that best match the query by title,`,
@@ -72,8 +90,7 @@ export function genrePrompt(
   label: string,
   avoid: string[],
 ): string {
-  const noun = media === "book" ? "books" : "movies";
-  const creator = media === "book" ? "author" : "director";
+  const { noun, creator } = MEDIA_INFO[media];
   return [
     `List exactly ${BOOKS_PER_GENRE} famous, real, widely-recognized ${noun}`,
     `in the genre "${label}".`,
@@ -91,6 +108,17 @@ export function genrePrompt(
 
 export function summaryPrompt(book: Book, minutes: ReadingTime): string {
   const words = WORDS_BY_TIME[minutes];
+
+  if (book.media === "song") {
+    return [
+      `ספר לי על הסיפור והמשמעות של השיר "${book.title}" של ${book.author}.`,
+      `אל תכתוב ניתוח מוזיקלי או ביקורת — הסבר על מה השיר מדבר, מה הסיפור או הרגש`,
+      `שמאחוריו, ההקשר שבו נכתב, והמסר המרכזי שלו, בצורה זורמת וברורה.`,
+      `כתוב בעברית בלבד, בערך ${words} מילים (קריאה של כ-${minutes} דקות).`,
+      `התחל ישר בתוכן, בלי כותרות, בלי נקודות, ובלי הקדמות.`,
+    ].join(" ");
+  }
+
   const subject =
     book.media === "book"
       ? `הספר "${book.title}" מאת ${book.author}`
