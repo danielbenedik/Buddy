@@ -7,27 +7,27 @@ interface MediaToggleProps {
   onChange: (media: MediaType) => void;
 }
 
+const OPTIONS: { value: MediaType; label: string }[] = [
+  { value: "book", label: "Books" },
+  { value: "movie", label: "Movies" },
+  { value: "song", label: "Songs" },
+];
+
 function MediaToggle({ value, onChange }: MediaToggleProps) {
   return (
     <div className={styles.toggle} role="tablist" aria-label="Media type">
-      <button
-        type="button"
-        role="tab"
-        aria-selected={value === "book"}
-        className={value === "book" ? styles.active : styles.option}
-        onClick={() => onChange("book")}
-      >
-        Books
-      </button>
-      <button
-        type="button"
-        role="tab"
-        aria-selected={value === "movie"}
-        className={value === "movie" ? styles.active : styles.option}
-        onClick={() => onChange("movie")}
-      >
-        Movies
-      </button>
+      {OPTIONS.map((opt) => (
+        <button
+          key={opt.value}
+          type="button"
+          role="tab"
+          aria-selected={value === opt.value}
+          className={value === opt.value ? styles.active : styles.option}
+          onClick={() => onChange(opt.value)}
+        >
+          {opt.label}
+        </button>
+      ))}
     </div>
   );
 }
