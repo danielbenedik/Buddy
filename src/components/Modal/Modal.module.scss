@@ -139,6 +139,42 @@
   color: t.$text;
 }
 
+.refresh {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  cursor: pointer;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  color: t.$text-muted;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.refresh:hover:not(:disabled) {
+  background: t.$accent;
+  color: t.$text;
+}
+
+.refresh:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.spinning svg {
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .body {
   padding: 20px 22px 26px;
 }

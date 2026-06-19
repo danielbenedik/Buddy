@@ -24,6 +24,19 @@
   animation: blink 1s steps(2, start) infinite;
 }
 
+// "Done" marker — a small black square (outlined so it shows on the dark
+// surface) appended once the summary has fully streamed in.
+.doneMark {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 6px;
+  vertical-align: 1px;
+  background: #000;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 2px;
+}
+
 @keyframes blink {
   to {
     visibility: hidden;

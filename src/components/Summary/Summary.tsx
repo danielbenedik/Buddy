@@ -1,17 +1,14 @@
-import { useStreamingSummary } from "../../hooks/useStreamingSummary";
-
 import styles from "./Summary.module.scss";
 
-import type { Book, ReadingTime } from "../../types/catalog";
+import type { StreamStatus } from "../../types/summary";
 
 interface SummaryProps {
-  book: Book;
-  minutes: ReadingTime;
+  text: string;
+  status: StreamStatus;
+  error?: string;
 }
 
-function Summary({ book, minutes }: SummaryProps) {
-  const { text, status, error } = useStreamingSummary(book, minutes);
-
+function Summary({ text, status, error }: SummaryProps) {
   if (status === "error") {
     return (
       <p className={styles.error}>Couldn’t generate the story. {error ?? ""}</p>
@@ -23,6 +20,9 @@ function Summary({ book, minutes }: SummaryProps) {
       <p className={styles.text} dir="rtl" lang="he">
         {text}
         {status === "streaming" && <span className={styles.caret} />}
+        {status === "done" && text.length > 0 && (
+          <span className={styles.doneMark} aria-label="Summary complete" />
+        )}
       </p>
       {status === "streaming" && text.length === 0 && (
         <p className={styles.status}>Generating story…</p>
