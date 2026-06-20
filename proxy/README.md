@@ -18,6 +18,9 @@ npx wrangler login
 # 2. Store your Gemini key as a secret (paste the key when prompted)
 npx wrangler secret put GEMINI_API_KEY
 
+# 2b. (optional) Store your TMDB key for movie posters (paste when prompted)
+npx wrangler secret put TMDB_API_KEY
+
 # 3. Deploy the Worker
 npx wrangler deploy
 ```
