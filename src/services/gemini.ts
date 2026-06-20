@@ -134,12 +134,6 @@ export async function getCatalog(media: MediaType): Promise<Catalog> {
   }));
   const hero = toBook(raw.hero, media);
 
-  // Covers come from Open Library (books only); movies use the colored title
-  // tiles, so skip cover lookups for them.
-  if (media !== "book") {
-    return { media, hero, genres };
-  }
-
   // Resolve covers with capped concurrency — firing all at once makes Open
   // Library throttle the burst and most lookups come back empty.
   const allBooks = [hero, ...genres.flatMap((g) => g.books)];
@@ -200,8 +194,6 @@ export async function generateGenreBooks(
   const books = (raw.results ?? [])
     .slice(0, BOOKS_PER_GENRE)
     .map((e) => toBook(e, media));
-
-  if (media !== "book") return books;
 
   const covers = await mapLimit(books, 6, fetchCoverUrl);
   return books.map((book, i) => {
