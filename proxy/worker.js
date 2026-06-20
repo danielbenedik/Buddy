@@ -1,10 +1,13 @@
-// Buddy Gemini proxy — a tiny Cloudflare Worker that holds the Gemini API key
-// as a server-side secret and forwards requests to Google. The browser calls
-// this Worker instead of Google, so the key never ships in the public bundle.
+// Buddy proxy — a tiny Cloudflare Worker that holds API keys as server-side
+// secrets so they never ship in the public bundle. It:
+//   - forwards Gemini calls (POST /v1beta/models/...) for catalog + stories
+//   - looks up movie posters via TMDB (GET /tmdb?query=...&year=...)
 //
 // Deploy: see proxy/README.md
 
 const GEMINI_ORIGIN = "https://generativelanguage.googleapis.com";
+const TMDB_SEARCH = "https://api.themoviedb.org/3/search/movie";
+const TMDB_IMAGE = "https://image.tmdb.org/t/p/w500";
 
 // Origins allowed to call this proxy (your site + local dev).
 const ALLOWED_ORIGINS = [
@@ -21,7 +24,7 @@ function corsHeaders(origin, request) {
     request && request.headers.get("Access-Control-Request-Headers");
   return {
     "Access-Control-Allow-Origin": allowed,
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Allow-Headers":
       requested ||
       "Content-Type, x-goog-api-key, x-goog-api-client, User-Agent",
@@ -30,23 +33,52 @@ function corsHeaders(origin, request) {
   };
 }
 
+function jsonResponse(obj, cors) {
+  const headers = new Headers(cors);
+  headers.set("Content-Type", "application/json");
+  return new Response(JSON.stringify(obj), { status: 200, headers });
+}
+
 export default {
   async fetch(request, env) {
     const origin = request.headers.get("Origin") || "";
     const cors = corsHeaders(origin, request);
+    const url = new URL(request.url);
 
     // CORS preflight
     if (request.method === "OPTIONS") {
       return new Response(null, { headers: cors });
     }
 
+    // Movie posters via TMDB (key stays server-side).
+    if (url.pathname === "/tmdb") {
+      const query = url.searchParams.get("query");
+      if (!query || !env.TMDB_API_KEY) {
+        return jsonResponse({ poster: null }, cors);
+      }
+      const tmdb = new URL(TMDB_SEARCH);
+      tmdb.searchParams.set("query", query);
+      const year = url.searchParams.get("year");
+      if (year) tmdb.searchParams.set("year", year);
+      tmdb.searchParams.set("api_key", env.TMDB_API_KEY);
+      try {
+        const res = await fetch(tmdb.toString());
+        const data = await res.json();
+        const path = data.results && data.results[0] && data.results[0].poster_path;
+        return jsonResponse(
+          { poster: path ? `${TMDB_IMAGE}${path}` : null },
+          cors,
+        );
+      } catch {
+        return jsonResponse({ poster: null }, cors);
+      }
+    }
+
+    // Everything below is the Gemini forward (POST only).
     if (request.method !== "POST") {
       return new Response("Method not allowed", { status: 405, headers: cors });
     }
 
-    const url = new URL(request.url);
-
-    // Only allow Gemini model calls (generateContent / streamGenerateContent).
     if (!url.pathname.startsWith("/v1beta/models/")) {
       return new Response("Forbidden", { status: 403, headers: cors });
     }

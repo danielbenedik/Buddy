@@ -6,6 +6,8 @@ import type { Book } from "../types/catalog";
 const OL_SEARCH = "https://openlibrary.org/search.json";
 const OL_COVERS = "https://covers.openlibrary.org/b";
 const ITUNES_SEARCH = "https://itunes.apple.com/search";
+// Movie posters go through the Worker (TMDB key stays server-side).
+const PROXY_URL = process.env.REACT_APP_GEMINI_PROXY_URL;
 
 // --- Books: Open Library ---
 interface OLResponse {
@@ -57,6 +59,21 @@ async function fetchSongArtwork(book: Book): Promise<string> {
   return art ? art.replace("100x100", "600x600") : "";
 }
 
+// --- Movies: TMDB via the Worker proxy (key stays server-side) ---
+interface TmdbResponse {
+  poster?: string | null;
+}
+
+async function fetchMoviePoster(book: Book): Promise<string> {
+  if (!PROXY_URL) return ""; // no proxy configured → fall back to the tile
+  const params = new URLSearchParams({ query: book.title });
+  if (book.year) params.set("year", String(book.year));
+  const res = await fetch(`${PROXY_URL}/tmdb?${params.toString()}`);
+  if (!res.ok) return "";
+  const json = (await res.json()) as TmdbResponse;
+  return json.poster ?? "";
+}
+
 export async function fetchCoverUrl(book: Book): Promise<string | null> {
   const cacheKey = cacheKeys.cover(book.id);
   const cached = getCached<string>(cacheKey);
@@ -68,9 +85,9 @@ export async function fetchCoverUrl(book: Book): Promise<string | null> {
       url = await fetchBookCover(book);
     } else if (book.media === "song") {
       url = await fetchSongArtwork(book);
+    } else {
+      url = await fetchMoviePoster(book);
     }
-    // Movies have no reliable keyless poster source — they use the colored
-    // title tile (a wrong poster would be worse than a clean tile).
     setCached(cacheKey, url, COVER_TTL);
     return url || null;
   } catch {
