@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import styles from "./app.module.scss";
 import Hero from "./components/Hero/Hero";
+import LoadingFact from "./components/LoadingFact/LoadingFact";
 import Modal from "./components/Modal/Modal";
 import Navbar from "./components/Navbar/Navbar";
 import Row from "./components/Row/Row";
@@ -41,6 +42,7 @@ function App() {
       />
 
       {loading && <Skeleton />}
+      {loading && <LoadingFact />}
 
       {error && (
         <div className={styles.center}>

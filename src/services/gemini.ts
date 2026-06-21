@@ -6,6 +6,8 @@ import {
   BOOKS_PER_GENRE,
   cacheKeys,
   catalogPrompt,
+  FUNFACT_TTL,
+  funFactPrompt,
   GENRE_COUNT,
   genrePrompt,
   MODEL_ID,
@@ -231,6 +233,31 @@ export async function searchTitles(
   const books = (raw.results ?? []).slice(0, 3).map((e) => toBook(e, media));
   setCached(cacheKey, books, SEARCH_TTL);
   return books;
+}
+
+export async function getFunFact(): Promise<string> {
+  if (!isConfigured) {
+    throw new Error(
+      "Missing REACT_APP_GEMINI_API_KEY or REACT_APP_GEMINI_PROXY_URL",
+    );
+  }
+
+  const now = new Date();
+  const cacheKey = cacheKeys.funFact(`${now.getMonth() + 1}-${now.getDate()}`);
+  const cached = getCached<string>(cacheKey);
+  if (cached) return cached;
+
+  const dateLabel = now.toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+  });
+  const response = await ai.models.generateContent({
+    model: MODEL_ID,
+    contents: funFactPrompt(dateLabel),
+  });
+  const fact = (response.text ?? "").trim();
+  if (fact) setCached(cacheKey, fact, FUNFACT_TTL);
+  return fact;
 }
 
 export async function* generateSummaryStream(

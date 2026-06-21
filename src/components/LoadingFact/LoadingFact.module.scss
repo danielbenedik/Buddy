@@ -1,0 +1,75 @@
+@use "../../styles/tokens" as t;
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.55);
+  animation: fade 0.2s ease;
+}
+
+.card {
+  width: 360px;
+  max-width: 100%;
+  background: t.$surface;
+  border: 0.5px solid t.$border;
+  border-radius: t.$radius-lg;
+  padding: 24px 22px;
+  text-align: center;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+}
+
+.spinner {
+  width: 28px;
+  height: 28px;
+  margin: 0 auto 14px;
+  border: 3px solid rgba(255, 255, 255, 0.15);
+  border-top-color: t.$accent;
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+
+.heading {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: t.$text;
+}
+
+.factLoading {
+  margin: 14px 0 0;
+  font-size: 13px;
+  color: t.$text-dim;
+}
+
+.label {
+  margin: 18px 0 6px;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: t.$accent;
+}
+
+.fact {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.7;
+  color: #e8e8e8;
+  text-align: right;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
