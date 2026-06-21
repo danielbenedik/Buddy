@@ -114,3 +114,16 @@
   font-size: 11px;
   color: t.$text-dim;
 }
+
+// On mobile the open search expands to fill the space freed by the hidden
+// toggle, so the field is comfortably wide.
+@media (max-width: 640px) {
+  .search {
+    flex: 1;
+  }
+
+  .form {
+    width: 100%;
+    max-width: none;
+  }
+}

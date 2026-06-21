@@ -40,6 +40,7 @@ export const CATALOG_TTL = DAY;
 export const SUMMARY_TTL = 7 * DAY;
 export const COVER_TTL = 30 * DAY;
 export const SEARCH_TTL = 7 * DAY;
+export const FUNFACT_TTL = DAY;
 
 export const cacheKeys = {
   catalog: (media: MediaType) => `buddy:catalog:${media}`,
@@ -49,7 +50,16 @@ export const cacheKeys = {
   cover: (bookId: string) => `buddy:cover:${bookId}`,
   search: (media: MediaType, query: string) =>
     `buddy:search:${media}:${query.trim().toLowerCase()}`,
+  funFact: (dateKey: string) => `buddy:funfact:${dateKey}`,
 };
+
+export function funFactPrompt(dateLabel: string): string {
+  return [
+    `תן לי עובדה אחת קצרה, מעניינת ומפתיעה (משפט אחד עד שניים) על התאריך`,
+    `${dateLabel} — אירוע היסטורי מפורסם, המצאה, או דבר מוזר שקרה ביום הזה.`,
+    `ענה בעברית בלבד, רק העובדה עצמה, בלי הקדמות ובלי כותרת.`,
+  ].join(" ");
+}
 
 export function catalogPrompt(media: MediaType, seed: string): string {
   const { noun, creator, mustLabel } = MEDIA_INFO[media];

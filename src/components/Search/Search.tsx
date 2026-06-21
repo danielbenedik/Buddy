@@ -8,6 +8,8 @@ import type { Book, MediaType, ReadingTime } from "../../types/catalog";
 
 interface SearchProps {
   media: MediaType;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   onSelect: (book: Book, minutes: ReadingTime) => void;
 }
 
@@ -26,14 +28,21 @@ const MagnifierIcon = () => (
   </svg>
 );
 
-function Search({ media, onSelect }: SearchProps) {
-  const [open, setOpen] = useState(false);
+function Search({ media, open, onOpenChange, onSelect }: SearchProps) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Book[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const close = () => {
+    setQuery("");
+    setResults(null);
+    setError(false);
+    setLoading(false);
+    onOpenChange(false);
+  };
 
   useEffect(() => {
     if (open) inputRef.current?.focus();
@@ -53,15 +62,8 @@ function Search({ media, onSelect }: SearchProps) {
       document.removeEventListener("mousedown", onDocClick);
       document.removeEventListener("keydown", onKey);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
-
-  const close = () => {
-    setOpen(false);
-    setQuery("");
-    setResults(null);
-    setError(false);
-    setLoading(false);
-  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,8 +91,8 @@ function Search({ media, onSelect }: SearchProps) {
       <button
         type="button"
         className={styles.iconButton}
-        onClick={() => setOpen(true)}
-        aria-label="Search books"
+        onClick={() => onOpenChange(true)}
+        aria-label="Search"
       >
         <MagnifierIcon />
       </button>
@@ -106,8 +108,8 @@ function Search({ media, onSelect }: SearchProps) {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search a book…"
-          aria-label="Search a book"
+          placeholder="Search…"
+          aria-label="Search"
         />
         <button type="submit" className={styles.submit} aria-label="Search">
           <MagnifierIcon />

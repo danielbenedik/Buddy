@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 import MediaToggle from "../MediaToggle/MediaToggle";
 import Search from "../Search/Search";
 
@@ -12,13 +14,24 @@ interface NavbarProps {
 }
 
 function Navbar({ media, onMediaChange, onSelect }: NavbarProps) {
+  const [searchOpen, setSearchOpen] = useState(false);
+
   return (
-    <header className={styles.navbar}>
+    <header
+      className={`${styles.navbar} ${searchOpen ? styles.searchOpen : ""}`}
+    >
       <div className={styles.left}>
         <span className={styles.logo}>BUDDY</span>
-        <MediaToggle value={media} onChange={onMediaChange} />
+        <div className={styles.toggleWrap}>
+          <MediaToggle value={media} onChange={onMediaChange} />
+        </div>
       </div>
-      <Search media={media} onSelect={onSelect} />
+      <Search
+        media={media}
+        open={searchOpen}
+        onOpenChange={setSearchOpen}
+        onSelect={onSelect}
+      />
     </header>
   );
 }

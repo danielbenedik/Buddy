@@ -7,6 +7,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 5px;
   padding: 14px 4vw;
   background: rgba(20, 20, 20, 0.92);
   backdrop-filter: blur(6px);
@@ -28,4 +29,20 @@
 
 .search {
   color: t.$text-muted;
+}
+
+.toggleWrap {
+  display: flex;
+}
+
+// On mobile, when the search is open let it take over the toggle's space.
+@media (max-width: 640px) {
+  .searchOpen .toggleWrap {
+    display: none;
+  }
+
+  .searchOpen .left {
+    flex: 0 1 auto;
+    min-width: 0;
+  }
 }
