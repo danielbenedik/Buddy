@@ -22,19 +22,33 @@ function Hero({ book, onSelect }: HeroProps) {
           {book.authorHe}
           {book.year ? ` · ${book.year}` : ""}
         </p>
-        <span className={styles.want}>I want</span>
-        <div className={styles.options}>
-          {READING_TIMES.map((minutes) => (
+        {book.media === "song" ? (
+          <div className={styles.options}>
             <button
-              key={minutes}
               type="button"
               className={styles.cta}
-              onClick={() => onSelect(book, minutes)}
+              onClick={() => onSelect(book, 2)}
             >
-              Story in {minutes} minutes
+              Story of the song
             </button>
-          ))}
-        </div>
+          </div>
+        ) : (
+          <>
+            <span className={styles.want}>I want</span>
+            <div className={styles.options}>
+              {READING_TIMES.map((minutes) => (
+                <button
+                  key={minutes}
+                  type="button"
+                  className={styles.cta}
+                  onClick={() => onSelect(book, minutes)}
+                >
+                  Story in {minutes} minutes
+                </button>
+              ))}
+            </div>
+          </>
+        )}
       </div>
       <BookCover
         book={book}

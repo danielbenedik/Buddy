@@ -65,21 +65,18 @@ export function catalogPrompt(media: MediaType, seed: string): string {
   const { noun, creator, mustLabel } = MEDIA_INFO[media];
   return [
     `Build a catalog of well-known ${noun} for a Netflix-style browsing app.`,
-    `Return exactly ${GENRE_COUNT} genres.`,
-    `The FIRST genre is the essential, most popular must-experience ${noun} —`,
-    `label it "${mustLabel}".`,
-    `The other ${GENRE_COUNT - 1} genres should be distinct, recognizable categories,`,
-    `rotated and varied from the usual defaults.`,
-    `Each genre must contain exactly ${BOOKS_PER_GENRE} famous, real, widely-recognized ${noun}.`,
-    `Also pick one separate, very famous "hero" ${media} to feature at the top.`,
-    `Variation token: ${seed}. Produce a FRESH, genuinely different selection this`,
-    `time — do NOT default to the same predictable titles; rotate the genres and`,
-    `blend timeless classics with less-obvious but well-regarded works.`,
-    `Avoid duplicates across genres.`,
-    `Genre labels must be in English or Hebrew.`,
-    `For each entry provide: the original title and ${creator} in English (for`,
-    `lookup), the title translated to Hebrew (titleHe), the ${creator} name in`,
-    `Hebrew (authorHe), and the release year.`,
+    `Pick one very famous "hero" ${media} to feature at the top.`,
+    `Then build the FIRST genre — the essential, most popular must-experience`,
+    `${noun}, labeled "${mustLabel}" — and fully list exactly ${BOOKS_PER_GENRE}`,
+    `famous, real, widely-recognized ${noun} for it.`,
+    `Also propose ${GENRE_COUNT - 1} more distinct, recognizable genre labels`,
+    `(names only — do NOT list ${noun} for these).`,
+    `Variation token: ${seed}. Produce a FRESH, genuinely different selection`,
+    `each time — rotate the genres and picks; avoid the same predictable titles.`,
+    `Genre labels may be in English or Hebrew.`,
+    `For the hero and each entry in the first genre, provide: the original title`,
+    `and ${creator} in English (for lookup), the title in Hebrew (titleHe), the`,
+    `${creator} in Hebrew (authorHe), and the release year.`,
   ].join(" ");
 }
 
@@ -121,10 +118,10 @@ export function summaryPrompt(book: Book, minutes: ReadingTime): string {
 
   if (book.media === "song") {
     return [
-      `ספר לי על הסיפור והמשמעות של השיר "${book.title}" של ${book.author}.`,
+      `ספר לי את הסיפור של השיר "${book.title}" של ${book.author}.`,
       `אל תכתוב ניתוח מוזיקלי או ביקורת — הסבר על מה השיר מדבר, מה הסיפור או הרגש`,
       `שמאחוריו, ההקשר שבו נכתב, והמסר המרכזי שלו, בצורה זורמת וברורה.`,
-      `כתוב בעברית בלבד, בערך ${words} מילים (קריאה של כ-${minutes} דקות).`,
+      `כתוב בעברית בלבד, באורך סביר וקריא, לא ארוך מדי.`,
       `התחל ישר בתוכן, בלי כותרות, בלי נקודות, ובלי הקדמות.`,
     ].join(" ");
   }

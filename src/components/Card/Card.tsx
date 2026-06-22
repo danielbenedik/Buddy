@@ -61,17 +61,28 @@ function Card({ book, onSelect }: CardProps) {
               ↩
             </button>
             <span className={styles.want}>I want</span>
-            {READING_TIMES.map((minutes) => (
+            {book.media === "song" ? (
               <button
-                key={minutes}
                 type="button"
                 className={styles.option}
-                onClick={() => choose(minutes)}
+                onClick={() => choose(2)}
                 tabIndex={flipped ? 0 : -1}
               >
-                Story in {minutes} minutes
+                Story of the song
               </button>
-            ))}
+            ) : (
+              READING_TIMES.map((minutes) => (
+                <button
+                  key={minutes}
+                  type="button"
+                  className={styles.option}
+                  onClick={() => choose(minutes)}
+                  tabIndex={flipped ? 0 : -1}
+                >
+                  Story in {minutes} minutes
+                </button>
+              ))
+            )}
           </div>
         </div>
       </div>

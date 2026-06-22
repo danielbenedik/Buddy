@@ -94,18 +94,22 @@ function Modal({
             </p>
             <div className={styles.tags}>
               {genreLabel && <span className={styles.genre}>{genreLabel}</span>}
-              <div className={styles.times}>
-                {READING_TIMES.map((m) => (
-                  <button
-                    key={m}
-                    type="button"
-                    className={m === minutes ? styles.timeActive : styles.time}
-                    onClick={() => onMinutesChange(m)}
-                  >
-                    {m} min
-                  </button>
-                ))}
-              </div>
+              {book.media !== "song" && (
+                <div className={styles.times}>
+                  {READING_TIMES.map((m) => (
+                    <button
+                      key={m}
+                      type="button"
+                      className={
+                        m === minutes ? styles.timeActive : styles.time
+                      }
+                      onClick={() => onMinutesChange(m)}
+                    >
+                      {m} min
+                    </button>
+                  ))}
+                </div>
+              )}
               <button
                 type="button"
                 className={`${styles.refresh} ${

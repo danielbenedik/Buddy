@@ -56,19 +56,17 @@ const catalogSchema = {
   type: Type.OBJECT,
   properties: {
     hero: entrySchema,
-    genres: {
-      type: Type.ARRAY,
-      items: {
-        type: Type.OBJECT,
-        properties: {
-          label: { type: Type.STRING },
-          books: { type: Type.ARRAY, items: entrySchema },
-        },
-        required: ["label", "books"],
+    firstGenre: {
+      type: Type.OBJECT,
+      properties: {
+        label: { type: Type.STRING },
+        books: { type: Type.ARRAY, items: entrySchema },
       },
+      required: ["label", "books"],
     },
+    otherGenres: { type: Type.ARRAY, items: { type: Type.STRING } },
   },
-  required: ["hero", "genres"],
+  required: ["hero", "firstGenre", "otherGenres"],
 };
 
 interface RawEntry {
@@ -81,7 +79,8 @@ interface RawEntry {
 
 interface RawCatalog {
   hero: RawEntry;
-  genres: Array<{ label: string; books: RawEntry[] }>;
+  firstGenre: { label: string; books: RawEntry[] };
+  otherGenres: string[];
 }
 
 function slugify(value: string): string {
@@ -129,19 +128,25 @@ export async function getCatalog(media: MediaType): Promise<Catalog> {
 
   const raw = JSON.parse(response.text ?? "{}") as RawCatalog;
 
-  const genres: Genre[] = raw.genres.slice(0, GENRE_COUNT).map((genre) => ({
-    id: slugify(genre.label),
-    label: genre.label,
-    books: genre.books.slice(0, BOOKS_PER_GENRE).map((e) => toBook(e, media)),
-  }));
   const hero = toBook(raw.hero, media);
+  const firstBooks = raw.firstGenre.books
+    .slice(0, BOOKS_PER_GENRE)
+    .map((e) => toBook(e, media));
+  const firstGenre: Genre = {
+    id: slugify(raw.firstGenre.label),
+    label: raw.firstGenre.label,
+    books: firstBooks,
+  };
+  // Remaining genres are label-only; their books load on demand when expanded.
+  const lazyGenres: Genre[] = (raw.otherGenres ?? [])
+    .slice(0, GENRE_COUNT - 1)
+    .map((label) => ({ id: slugify(label), label, books: [] }));
 
-  // Resolve covers with capped concurrency — firing all at once makes Open
-  // Library throttle the burst and most lookups come back empty.
-  const allBooks = [hero, ...genres.flatMap((g) => g.books)];
-  const covers = await mapLimit(allBooks, 6, fetchCoverUrl);
+  // Only fetch covers for the hero + first genre, so the initial load is fast.
+  const withCovers = [hero, ...firstBooks];
+  const covers = await mapLimit(withCovers, 6, fetchCoverUrl);
   const coverById = new Map<string, string>();
-  allBooks.forEach((book, i) => {
+  withCovers.forEach((book, i) => {
     const url = covers[i];
     if (url) coverById.set(book.id, url);
   });
@@ -154,10 +159,10 @@ export async function getCatalog(media: MediaType): Promise<Catalog> {
   return {
     media,
     hero: applyCover(hero),
-    genres: genres.map((genre) => ({
-      ...genre,
-      books: genre.books.map(applyCover),
-    })),
+    genres: [
+      { ...firstGenre, books: firstGenre.books.map(applyCover) },
+      ...lazyGenres,
+    ],
   };
 }
 
