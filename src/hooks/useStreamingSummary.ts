@@ -27,7 +27,12 @@ export function useStreamingSummary(
     }
 
     let cancelled = false;
-    const key = cacheKeys.summary(book.media, book.id, minutes);
+    const key = cacheKeys.summary(
+      book.media,
+      book.id,
+      minutes,
+      book.lang ?? "he",
+    );
 
     const cached = getCached<string>(key);
     if (cached) {
@@ -67,7 +72,9 @@ export function useStreamingSummary(
   const reload = useCallback(() => {
     if (!book) return;
     try {
-      localStorage.removeItem(cacheKeys.summary(book.media, book.id, minutes));
+      localStorage.removeItem(
+        cacheKeys.summary(book.media, book.id, minutes, book.lang ?? "he"),
+      );
     } catch {
       // best-effort
     }

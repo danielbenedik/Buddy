@@ -3,6 +3,13 @@ import { createPortal } from "react-dom";
 
 import { useStreamingSummary } from "../../hooks/useStreamingSummary";
 import { READING_TIMES } from "../../utils/constants";
+import {
+  displayAuthor,
+  displayTitle,
+  isEnglish,
+  textDir,
+  textLang,
+} from "../../utils/display";
 import BookCover from "../BookCover/BookCover";
 import Summary from "../Summary/Summary";
 
@@ -85,11 +92,19 @@ function Modal({
             placeholderClassName={styles.coverPlaceholder}
           />
           <div className={styles.headerInfo}>
-            <h2 className={styles.title} dir="rtl" lang="he">
-              {book.titleHe}
+            <h2
+              className={styles.title}
+              dir={textDir(book)}
+              lang={textLang(book)}
+            >
+              {displayTitle(book)}
             </h2>
-            <p className={styles.meta} dir="rtl" lang="he">
-              {book.authorHe}
+            <p
+              className={styles.meta}
+              dir={textDir(book)}
+              lang={textLang(book)}
+            >
+              {displayAuthor(book)}
               {book.year ? ` · ${book.year}` : ""}
             </p>
             <div className={styles.tags}>
@@ -126,7 +141,12 @@ function Modal({
           </div>
         </div>
         <div className={styles.body}>
-          <Summary text={text} status={status} error={error} />
+          <Summary
+            text={text}
+            status={status}
+            error={error}
+            english={isEnglish(book)}
+          />
         </div>
       </div>
     </div>,

@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import { displayTitle, textDir, textLang } from "../../utils/display";
 import { placeholderColor } from "../../utils/placeholder";
 
 import type { Book } from "../../types/catalog";
@@ -33,10 +34,10 @@ function BookCover({
     <span
       className={placeholderClassName}
       style={{ background: placeholderColor(book.id) }}
-      dir="rtl"
-      lang="he"
+      dir={textDir(book)}
+      lang={textLang(book)}
     >
-      {book.titleHe}
+      {displayTitle(book)}
     </span>
   );
 }

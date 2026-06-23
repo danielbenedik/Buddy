@@ -1,6 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 
 import { searchTitles } from "../../services/gemini";
+import {
+  displayAuthor,
+  displayTitle,
+  textDir,
+  textLang,
+} from "../../utils/display";
 
 import styles from "./Search.module.scss";
 
@@ -131,12 +137,12 @@ function Search({ media, open, onOpenChange, onSelect }: SearchProps) {
               type="button"
               className={styles.result}
               onClick={() => pick(book)}
-              dir="rtl"
-              lang="he"
+              dir={textDir(book)}
+              lang={textLang(book)}
             >
-              <span className={styles.resultTitle}>{book.titleHe}</span>
+              <span className={styles.resultTitle}>{displayTitle(book)}</span>
               <span className={styles.resultMeta}>
-                {book.authorHe}
+                {displayAuthor(book)}
                 {book.year ? ` · ${book.year}` : ""}
               </span>
             </button>
