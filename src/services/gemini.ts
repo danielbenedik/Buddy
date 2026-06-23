@@ -22,6 +22,7 @@ import type {
   Book,
   Catalog,
   Genre,
+  Lang,
   MediaType,
   ReadingTime,
 } from "../types/catalog";
@@ -235,7 +236,12 @@ export async function searchTitles(
   const raw = JSON.parse(response.text ?? '{"results":[]}') as {
     results: RawEntry[];
   };
-  const books = (raw.results ?? []).slice(0, 3).map((e) => toBook(e, media));
+  // Follow the query language: a Hebrew query stays Hebrew, anything else
+  // (English/Latin) shows results and the summary in English.
+  const lang: Lang = /[֐-׿]/.test(query) ? "he" : "en";
+  const books = (raw.results ?? [])
+    .slice(0, 3)
+    .map((e) => ({ ...toBook(e, media), lang }));
   setCached(cacheKey, books, SEARCH_TTL);
   return books;
 }

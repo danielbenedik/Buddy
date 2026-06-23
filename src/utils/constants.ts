@@ -1,4 +1,4 @@
-import type { Book, MediaType, ReadingTime } from "../types/catalog";
+import type { Book, Lang, MediaType, ReadingTime } from "../types/catalog";
 
 export const MODEL_ID = "gemini-2.5-flash";
 
@@ -45,8 +45,12 @@ export const FUNFACT_TTL = DAY;
 export const cacheKeys = {
   catalog: (media: MediaType) => `buddy:catalog:${media}`,
   // Keyed by media + reading time + "he" so each variant is cached separately.
-  summary: (media: MediaType, bookId: string, minutes: ReadingTime) =>
-    `buddy:summary:${media}:he:${minutes}:${bookId}`,
+  summary: (
+    media: MediaType,
+    bookId: string,
+    minutes: ReadingTime,
+    lang: Lang,
+  ) => `buddy:summary:${media}:${lang}:${minutes}:${bookId}`,
   cover: (bookId: string) => `buddy:cover:${bookId}`,
   search: (media: MediaType, query: string) =>
     `buddy:search:${media}:${query.trim().toLowerCase()}`,
@@ -115,14 +119,40 @@ export function genrePrompt(
 
 export function summaryPrompt(book: Book, minutes: ReadingTime): string {
   const words = WORDS_BY_TIME[minutes];
+  const english = book.lang === "en";
 
   if (book.media === "song") {
+    if (english) {
+      return [
+        `Tell me the story of the song "${book.title}" by ${book.author}.`,
+        `Don't write a musical analysis or review — explain what the song is`,
+        `about, the story or emotion behind it, the context it was written in,`,
+        `and its central message, in flowing, clear prose.`,
+        `Write in English only, a reasonable readable length, not too long.`,
+        `Start straight with the content — no headings, no bullet points, no preamble.`,
+      ].join(" ");
+    }
     return [
       `ספר לי את הסיפור של השיר "${book.title}" של ${book.author}.`,
       `אל תכתוב ניתוח מוזיקלי או ביקורת — הסבר על מה השיר מדבר, מה הסיפור או הרגש`,
       `שמאחוריו, ההקשר שבו נכתב, והמסר המרכזי שלו, בצורה זורמת וברורה.`,
       `כתוב בעברית בלבד, באורך סביר וקריא, לא ארוך מדי.`,
       `התחל ישר בתוכן, בלי כותרות, בלי נקודות, ובלי הקדמות.`,
+    ].join(" ");
+  }
+
+  if (english) {
+    const subject =
+      book.media === "book"
+        ? `the book "${book.title}" by ${book.author}`
+        : `the movie "${book.title}" directed by ${book.author}`;
+    return [
+      `Retell the story of ${subject}.`,
+      `Don't write an analytical summary or review — tell the plot itself`,
+      `concisely, as a flowing story from beginning to end, with the main`,
+      `events and key turning points in the order they happen.`,
+      `Write in English only, about ${words} words (about a ${minutes}-minute read).`,
+      `Start straight with the story — no headings, no bullet points, no preamble.`,
     ].join(" ");
   }
 
