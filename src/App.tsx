@@ -19,6 +19,8 @@ interface Selection {
 function App() {
   const [media, setMedia] = useState<MediaType>("book");
   const [selected, setSelected] = useState<Selection | null>(null);
+  // The daily fact stays up until the user dismisses it — it never auto-closes.
+  const [factOpen, setFactOpen] = useState(true);
   const { catalog, loading, error, refreshGenre } = useCatalog(media);
 
   const genreLabel = catalog?.genres.find((g) =>
@@ -42,7 +44,9 @@ function App() {
       />
 
       {loading && <Skeleton />}
-      {loading && <LoadingFact />}
+      {factOpen && (
+        <LoadingFact loading={loading} onClose={() => setFactOpen(false)} />
+      )}
 
       {error && (
         <div className={styles.center}>

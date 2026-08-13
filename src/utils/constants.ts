@@ -7,6 +7,21 @@ export const BOOKS_PER_GENRE = 7;
 
 export const READING_TIMES: ReadingTime[] = [2, 5];
 
+// Catalogs favor the last two decades so the rows stay contemporary.
+const RECENT_DECADES_YEARS = 20;
+
+function recentFromYear(): number {
+  return new Date().getFullYear() - RECENT_DECADES_YEARS;
+}
+
+function recencyRule(noun: string): string {
+  return [
+    `Keep it MODERN: pick ${noun} released from ${recentFromYear()} onward`,
+    `(the last two decades) — contemporary titles, not old classics.`,
+    `Only reach further back if a genre genuinely has no notable recent ${noun}.`,
+  ].join(" ");
+}
+
 // Approximate Hebrew word budget per reading time (~150 wpm).
 const WORDS_BY_TIME: Record<ReadingTime, number> = {
   2: 500,
@@ -43,7 +58,8 @@ export const SEARCH_TTL = 7 * DAY;
 export const FUNFACT_TTL = DAY;
 
 export const cacheKeys = {
-  catalog: (media: MediaType) => `buddy:catalog:${media}`,
+  // v2: catalogs now favor the last two decades — invalidates pre-change caches.
+  catalog: (media: MediaType) => `buddy:catalog:v2:${media}`,
   // Keyed by media + reading time + "he" so each variant is cached separately.
   summary: (
     media: MediaType,
@@ -75,6 +91,7 @@ export function catalogPrompt(media: MediaType, seed: string): string {
     `famous, real, widely-recognized ${noun} for it.`,
     `Also propose ${GENRE_COUNT - 1} more distinct, recognizable genre labels`,
     `(names only — do NOT list ${noun} for these).`,
+    recencyRule(noun),
     `Variation token: ${seed}. Produce a FRESH, genuinely different selection`,
     `each time — rotate the genres and picks; avoid the same predictable titles.`,
     `Genre labels may be in English or Hebrew.`,
@@ -108,6 +125,7 @@ export function genrePrompt(
     avoid.length
       ? `Do NOT include any of these (already shown): ${avoid.join("; ")}.`
       : "",
+    recencyRule(noun),
     `Bring a fresh, different set of well-known titles.`,
     `For each entry provide: the original title and ${creator} in English (for`,
     `lookup), the title in Hebrew (titleHe), the ${creator} in Hebrew (authorHe),`,

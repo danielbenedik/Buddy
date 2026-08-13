@@ -4,7 +4,12 @@ import { getFunFact } from "../../services/gemini";
 
 import styles from "./LoadingFact.module.scss";
 
-function LoadingFact() {
+interface LoadingFactProps {
+  loading: boolean;
+  onClose: () => void;
+}
+
+function LoadingFact({ loading, onClose }: LoadingFactProps) {
   // null = still fetching the fact, "" = failed/empty, string = the fact
   const [fact, setFact] = useState<string | null>(null);
 
@@ -22,11 +27,31 @@ function LoadingFact() {
     };
   }, []);
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
   return (
     <div className={styles.backdrop} role="status" aria-live="polite">
       <div className={styles.card}>
-        <div className={styles.spinner} aria-hidden="true" />
-        <p className={styles.heading}>Content loading…</p>
+        <button
+          type="button"
+          className={styles.close}
+          onClick={onClose}
+          aria-label="Close"
+        >
+          ✕
+        </button>
+        {loading && (
+          <>
+            <div className={styles.spinner} aria-hidden="true" />
+            <p className={styles.heading}>Content loading…</p>
+          </>
+        )}
         {fact === null && (
           <p className={styles.factLoading} dir="rtl" lang="he">
             טוען עובדה מעניינת…
