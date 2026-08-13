@@ -13,6 +13,7 @@
 }
 
 .card {
+  position: relative;
   width: 360px;
   max-width: 100%;
   background: t.$surface;
@@ -21,6 +22,20 @@
   padding: 24px 22px;
   text-align: center;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+}
+
+.close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  cursor: pointer;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  color: t.$text;
+  font-size: 15px;
 }
 
 .spinner {
