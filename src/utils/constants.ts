@@ -5,6 +5,14 @@ export const MODEL_ID = "gemini-2.5-flash";
 export const GENRE_COUNT = 5;
 export const BOOKS_PER_GENRE = 7;
 
+// --- Guess the Pic ---
+export const GUESS_ROWS = 4;
+export const GUESS_COLS = 4;
+export const GUESS_POOL_SIZE = 10;
+// Fibonacci-ish ladder so tile numbers read cleanly instead of 7/4/11/6.
+export const COST_LADDER = [1, 2, 3, 5, 8, 13];
+export const TARGET_BOARD_TOTAL = 100;
+
 export const READING_TIMES: ReadingTime[] = [2, 5];
 
 // Catalogs favor the last two decades so the rows stay contemporary.
@@ -56,6 +64,8 @@ export const SUMMARY_TTL = 7 * DAY;
 export const COVER_TTL = 30 * DAY;
 export const SEARCH_TTL = 7 * DAY;
 export const FUNFACT_TTL = DAY;
+export const GUESS_POOL_TTL = DAY;
+export const GUESS_BOARD_TTL = 30 * DAY;
 
 export const cacheKeys = {
   // v2: catalogs now favor the last two decades — invalidates pre-change caches.
@@ -71,6 +81,10 @@ export const cacheKeys = {
   search: (media: MediaType, query: string) =>
     `buddy:search:${media}:${query.trim().toLowerCase()}`,
   funFact: (dateKey: string) => `buddy:funfact:${dateKey}`,
+  guessPool: (dateKey: string) => `buddy:guess:pool:${dateKey}`,
+  // Image + cost matrix are stable per subject, so they outlive the daily pool.
+  guessBoard: (subjectId: string) => `buddy:guess:board:${subjectId}`,
+  guessBest: "buddy:guess:best",
 };
 
 export function funFactPrompt(dateLabel: string): string {
@@ -185,5 +199,38 @@ export function summaryPrompt(book: Book, minutes: ReadingTime): string {
     `לפי סדר התרחשותם.`,
     `כתוב בעברית בלבד, בערך ${words} מילים (קריאה של כ-${minutes} דקות).`,
     `התחל ישר בסיפור, בלי כותרות, בלי נקודות, ובלי הקדמות.`,
+  ].join(" ");
+}
+
+export function guessPoolPrompt(seed: string): string {
+  return [
+    `Pick ${GUESS_POOL_SIZE} subjects for a "guess the picture" game.`,
+    `Each subject must be a real, globally famous, VISUALLY recognizable thing`,
+    `that has an English Wikipedia article with a good lead photograph —`,
+    `landmarks, animals, natural wonders, iconic objects, vehicles, or very`,
+    `famous people. No abstract concepts, no events, no logos.`,
+    `For each subject provide: the exact English Wikipedia article title`,
+    `(wikiTitle — the real article name, e.g. "Eiffel Tower"), the name in`,
+    `English (en), the name in Hebrew (he), a short Hebrew category label`,
+    `(category, e.g. "אתרים" / "בעלי חיים"), and exactly 3 decoys.`,
+    `Decoys are other real, famous subjects from the SAME category that a player`,
+    `could plausibly confuse with the answer — give each decoy an English (en)`,
+    `and Hebrew (he) name. Decoys must never be the answer itself.`,
+    `Variation token: ${seed}. Return a fresh, varied mix of categories and`,
+    `difficulty each time — do not repeat the same predictable subjects.`,
+  ].join(" ");
+}
+
+export function guessBoxesPrompt(subject: string): string {
+  return [
+    `This image shows "${subject}".`,
+    `Return 2D bounding boxes, normalized to 0-1000, as [ymin, xmin, ymax, xmax].`,
+    `"subject": one box tightly around the main subject itself — not the whole`,
+    `frame, and not the background.`,
+    `"details": 1 to 3 smaller boxes around the specific visual features that`,
+    `most give away the subject's identity — the parts a person would recognize`,
+    `it by (a distinctive shape, silhouette, pattern, or marking).`,
+    `Detail boxes should be tight and lie inside or overlap the subject box.`,
+    `If the subject fills the entire frame, still return the tightest box you can.`,
   ].join(" ");
 }

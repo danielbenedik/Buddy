@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
 
 import App from "./App";
@@ -40,11 +40,58 @@ jest.mock("./hooks/useCatalog", () => ({
 jest.mock("./services/gemini", () => ({
   getCatalog: jest.fn(),
   generateSummaryStream: jest.fn(),
+  getFunFact: () => Promise.resolve(""),
   hasApiKey: () => false,
 }));
 
-test("renders the navbar and catalog content", () => {
+jest.mock("./hooks/useGuessGame", () => ({
+  useGuessGame: () => ({
+    round: {
+      subject: {
+        id: "eiffel-tower",
+        wikiTitle: "Eiffel Tower",
+        answer: { en: "Eiffel Tower", he: "מגדל אייפל" },
+        decoys: [
+          { en: "Big Ben", he: "ביג בן" },
+          { en: "Colosseum", he: "קולוסיאום" },
+          { en: "Taj Mahal", he: "טאג' מהאל" },
+        ],
+        category: "אתרים",
+      },
+      imageUrl: "https://example.test/eiffel.jpg",
+      costs: [1, 2, 3, 5, 8, 13, 3, 2, 1, 2, 5, 8, 1, 1, 2, 3],
+      boardTotal: 60,
+      options: [
+        { en: "Eiffel Tower", he: "מגדל אייפל" },
+        { en: "Big Ben", he: "ביג בן" },
+        { en: "Colosseum", he: "קולוסיאום" },
+        { en: "Taj Mahal", he: "טאג' מהאל" },
+      ],
+    },
+    loading: false,
+    error: null,
+    revealed: [],
+    status: "playing",
+    spent: 0,
+    runSpent: 0,
+    streak: 0,
+    best: 0,
+    reveal: jest.fn(),
+    guess: jest.fn(),
+    next: jest.fn(),
+    restart: jest.fn(),
+  }),
+}));
+
+test("opens on the game section", () => {
   render(<App />);
   expect(screen.getByText("BUDDY")).toBeInTheDocument();
+  expect(screen.getByText("נחש את התמונה")).toBeInTheDocument();
+  expect(screen.getByText("מגדל אייפל")).toBeInTheDocument();
+});
+
+test("switches to the catalog", () => {
+  render(<App />);
+  fireEvent.click(screen.getByRole("tab", { name: "Books" }));
   expect(screen.getByText("Classics")).toBeInTheDocument();
 });

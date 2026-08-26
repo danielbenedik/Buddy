@@ -1,19 +1,20 @@
 import { useState } from "react";
 
-import MediaToggle from "../MediaToggle/MediaToggle";
 import Search from "../Search/Search";
+import SectionToggle from "../SectionToggle/SectionToggle";
 
 import styles from "./Navbar.module.scss";
 
 import type { Book, MediaType, ReadingTime } from "../../types/catalog";
+import type { AppSection } from "../../types/section";
 
 interface NavbarProps {
-  media: MediaType;
-  onMediaChange: (media: MediaType) => void;
+  section: AppSection;
+  onSectionChange: (section: AppSection) => void;
   onSelect: (book: Book, minutes: ReadingTime) => void;
 }
 
-function Navbar({ media, onMediaChange, onSelect }: NavbarProps) {
+function Navbar({ section, onSectionChange, onSelect }: NavbarProps) {
   const [searchOpen, setSearchOpen] = useState(false);
 
   return (
@@ -23,15 +24,18 @@ function Navbar({ media, onMediaChange, onSelect }: NavbarProps) {
       <div className={styles.left}>
         <span className={styles.logo}>BUDDY</span>
         <div className={styles.toggleWrap}>
-          <MediaToggle value={media} onChange={onMediaChange} />
+          <SectionToggle value={section} onChange={onSectionChange} />
         </div>
       </div>
-      <Search
-        media={media}
-        open={searchOpen}
-        onOpenChange={setSearchOpen}
-        onSelect={onSelect}
-      />
+      {/* Search looks up catalog titles — it has nothing to search in the game. */}
+      {section !== "guess" && (
+        <Search
+          media={section as MediaType}
+          open={searchOpen}
+          onOpenChange={setSearchOpen}
+          onSelect={onSelect}
+        />
+      )}
     </header>
   );
 }

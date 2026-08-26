@@ -1,0 +1,60 @@
+@use "../../styles/tokens" as t;
+
+.board {
+  position: relative;
+  width: 100%;
+  // Fixed ratio so tiles line up regardless of the source image's shape.
+  aspect-ratio: 4 / 3;
+  border-radius: t.$radius-lg;
+  overflow: hidden;
+  background: t.$surface-raised;
+}
+
+.photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.grid {
+  position: absolute;
+  inset: 0;
+  display: grid;
+}
+
+.tile {
+  // An opaque border, not a grid gap — a gap lets slivers of the photo show
+  // through before the player has paid for them.
+  border: 1px solid t.$bg;
+  padding: 0;
+  cursor: pointer;
+  background: t.$surface;
+  color: t.$text-muted;
+  font-size: 15px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    opacity 0.35s ease,
+    background 0.15s ease;
+}
+
+.tile:hover:not(:disabled) {
+  background: t.$surface-raised;
+  color: t.$text;
+}
+
+.tile:disabled {
+  cursor: default;
+}
+
+.open {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.cost {
+  pointer-events: none;
+}

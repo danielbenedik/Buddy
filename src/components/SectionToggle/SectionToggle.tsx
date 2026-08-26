@@ -1,21 +1,22 @@
-import styles from "./MediaToggle.module.scss";
+import styles from "./SectionToggle.module.scss";
 
-import type { MediaType } from "../../types/catalog";
+import type { AppSection } from "../../types/section";
 
-interface MediaToggleProps {
-  value: MediaType;
-  onChange: (media: MediaType) => void;
+interface SectionToggleProps {
+  value: AppSection;
+  onChange: (section: AppSection) => void;
 }
 
-const OPTIONS: { value: MediaType; label: string }[] = [
+const OPTIONS: { value: AppSection; label: string }[] = [
+  { value: "guess", label: "Game" },
   { value: "book", label: "Books" },
   { value: "movie", label: "Movies" },
   { value: "song", label: "Songs" },
 ];
 
-function MediaToggle({ value, onChange }: MediaToggleProps) {
+function SectionToggle({ value, onChange }: SectionToggleProps) {
   return (
-    <div className={styles.toggle} role="tablist" aria-label="Media type">
+    <div className={styles.toggle} role="tablist" aria-label="Section">
       {OPTIONS.map((opt) => (
         <button
           key={opt.value}
@@ -32,4 +33,4 @@ function MediaToggle({ value, onChange }: MediaToggleProps) {
   );
 }
 
-export default MediaToggle;
+export default SectionToggle;

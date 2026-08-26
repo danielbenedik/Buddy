@@ -1,0 +1,111 @@
+@use "../../styles/tokens" as t;
+
+.game {
+  max-width: 620px;
+  margin: 0 auto;
+  padding: 24px 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.head {
+  text-align: center;
+}
+
+.title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.sub {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: t.$text-muted;
+}
+
+.stats {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  font-size: 13px;
+  color: t.$text-muted;
+}
+
+.stat b {
+  color: t.$text;
+  font-size: 15px;
+}
+
+.category {
+  margin: 0;
+  text-align: center;
+  font-size: 13px;
+  color: t.$text-dim;
+}
+
+.result {
+  text-align: center;
+  padding: 14px;
+  border-radius: t.$radius-md;
+  background: t.$surface;
+  border: 0.5px solid t.$border;
+}
+
+.verdict {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.runScore {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: t.$text-muted;
+}
+
+.action {
+  margin-top: 12px;
+  border: none;
+  cursor: pointer;
+  padding: 11px 22px;
+  border-radius: t.$radius-sm;
+  background: t.$accent;
+  color: t.$text;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 60vh;
+  color: t.$text-muted;
+  font-size: 16px;
+  text-align: center;
+  padding: 0 24px;
+}
+
+.errorDetail {
+  font-size: 13px;
+  color: t.$text-dim;
+}
+
+.spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid t.$border;
+  border-top-color: t.$accent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

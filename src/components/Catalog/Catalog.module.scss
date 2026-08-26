@@ -1,0 +1,19 @@
+@use "../../styles/tokens" as t;
+
+.center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 60vh;
+  color: t.$text-muted;
+  font-size: 16px;
+  text-align: center;
+  padding: 0 24px;
+}
+
+.errorDetail {
+  font-size: 13px;
+  color: t.$text-dim;
+}

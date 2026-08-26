@@ -34,3 +34,22 @@
   color: t.$text-dim;
   cursor: not-allowed;
 }
+
+// A fourth tab pushes the toggle past a phone's width — let it scroll instead
+// of squeezing the logo out.
+@media (max-width: 640px) {
+  .toggle {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .toggle::-webkit-scrollbar {
+    display: none;
+  }
+
+  .option,
+  .active {
+    padding: 5px 12px;
+    white-space: nowrap;
+  }
+}
