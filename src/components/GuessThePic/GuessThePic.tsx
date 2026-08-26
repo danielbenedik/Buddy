@@ -1,3 +1,5 @@
+import { useEffect, useRef } from "react";
+
 import { useGuessGame } from "../../hooks/useGuessGame";
 
 import GuessBoard from "./GuessBoard";
@@ -20,6 +22,19 @@ function GuessThePic() {
     next,
     restart,
   } = useGuessGame();
+
+  const resultRef = useRef<HTMLDivElement>(null);
+
+  // The verdict sits below the board, so on a phone it can land off-screen —
+  // bring it into view so the answer is never missed.
+  useEffect(() => {
+    if (status !== "playing") {
+      resultRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  }, [status]);
 
   if (error) {
     return (
@@ -85,7 +100,7 @@ function GuessThePic() {
       />
 
       {status !== "playing" && (
-        <div className={styles.result} dir="rtl" lang="he">
+        <div className={styles.result} dir="rtl" lang="he" ref={resultRef}>
           {status === "won" ? (
             <>
               <p className={styles.verdict}>

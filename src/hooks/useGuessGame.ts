@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { buildRound, getSubjectPool, shuffle } from "../services/guessPic";
 import { getCached, setCached } from "../utils/cache";
-import { cacheKeys, GUESS_BOARD_TTL } from "../utils/constants";
+import { BOX_BATCH_SIZE, cacheKeys, GUESS_BOARD_TTL } from "../utils/constants";
 
 import type {
   GuessOption,
@@ -63,22 +63,30 @@ export function useGuessGame(): GuessGame {
     async (start: number): Promise<{ round: GuessRound; at: number }> => {
       if (!queue.current.length) await refillQueue(false);
 
-      for (let i = start; i < queue.current.length; i += 1) {
-        try {
-          return { round: await buildRound(queue.current[i]), at: i };
-        } catch {
-          continue;
+      // Hand buildRound the subjects that follow so it can price them in the
+      // same vision call instead of one request each.
+      const attempt = async (from: number) => {
+        for (let i = from; i < queue.current.length; i += 1) {
+          try {
+            const upcoming = queue.current.slice(i + 1, i + BOX_BATCH_SIZE);
+            return {
+              round: await buildRound(queue.current[i], upcoming),
+              at: i,
+            };
+          } catch {
+            continue;
+          }
         }
-      }
+        return null;
+      };
+
+      const found = await attempt(start);
+      if (found) return found;
 
       await refillQueue(true);
-      for (let i = 0; i < queue.current.length; i += 1) {
-        try {
-          return { round: await buildRound(queue.current[i]), at: i };
-        } catch {
-          continue;
-        }
-      }
+      const refilled = await attempt(0);
+      if (refilled) return refilled;
+
       throw new Error("Couldn't build a playable round");
     },
     [refillQueue],

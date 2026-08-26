@@ -9,6 +9,10 @@ export const BOOKS_PER_GENRE = 7;
 export const GUESS_ROWS = 10;
 export const GUESS_COLS = 10;
 export const GUESS_POOL_SIZE = 10;
+// Boxes for several subjects are requested in one vision call. Kept small on
+// purpose: batching trades tokens for requests, and a large group would pay for
+// pictures the player may never reach.
+export const BOX_BATCH_SIZE = 3;
 // Fibonacci-ish ladder so tile numbers read cleanly instead of 7/4/11/6.
 export const COST_LADDER = [1, 2, 3, 5, 8, 13];
 // Scaled by tile count: a fixed total would price a 100-tile board at ~1 per
@@ -227,10 +231,8 @@ export function guessPoolPrompt(seed: string): string {
   ].join(" ");
 }
 
-export function guessBoxesPrompt(subject: string): string {
+function boxRules(): string {
   return [
-    `This image shows "${subject}".`,
-    `Return 2D bounding boxes, normalized to 0-1000, as [ymin, xmin, ymax, xmax].`,
     `"subject": one box tightly around the main subject itself — not the whole`,
     `frame, and not the background.`,
     `"details": 1 to 3 smaller boxes around the specific visual features that`,
@@ -239,4 +241,27 @@ export function guessBoxesPrompt(subject: string): string {
     `Detail boxes should be tight and lie inside or overlap the subject box.`,
     `If the subject fills the entire frame, still return the tightest box you can.`,
   ].join(" ");
+}
+
+// One call covering several photos. Each entry is keyed by a 1-based index so a
+// dropped or reordered result can be detected rather than silently mismatched.
+export function guessBoxesBatchPrompt(subjects: string[]): string {
+  const many = subjects.length > 1;
+  return [
+    many
+      ? `You are given ${subjects.length} images, in order.`
+      : `You are given 1 image.`,
+    ...subjects.map((s, i) => `Image ${i + 1} shows "${s}".`),
+    `For EACH image, return one entry containing its 1-based "index" and 2D`,
+    `bounding boxes normalized to 0-1000, as [ymin, xmin, ymax, xmax].`,
+    boxRules(),
+    many
+      ? `Return exactly ${subjects.length} entries, one per image, and never mix`
+      : `Return exactly 1 entry.`,
+    many
+      ? `up boxes between images — entry index N must describe image N.`
+      : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 }
