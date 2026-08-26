@@ -1,19 +1,10 @@
 import { GUESS_COLS, GUESS_ROWS } from "../utils/constants";
+import { loadImage } from "../utils/image";
 
 // Fallback scoring when the vision call fails: busy, high-contrast cells are
 // assumed to carry more information than flat ones. Detail isn't the same as
 // identity, so this is a fallback, never the primary signal.
 const SAMPLE_WIDTH = 320;
-
-function loadImage(url: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error("image load failed"));
-    img.src = url;
-  });
-}
 
 export async function importanceFromPixels(url: string): Promise<number[]> {
   const img = await loadImage(url);

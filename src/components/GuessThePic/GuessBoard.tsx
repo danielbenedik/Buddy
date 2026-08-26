@@ -2,8 +2,11 @@ import { GUESS_COLS, GUESS_ROWS } from "../../utils/constants";
 
 import styles from "./GuessBoard.module.scss";
 
+import type { CSSProperties } from "react";
+
 interface GuessBoardProps {
   imageUrl: string;
+  aspect: number;
   costs: number[];
   revealed: number[];
   locked: boolean;
@@ -12,13 +15,17 @@ interface GuessBoardProps {
 
 function GuessBoard({
   imageUrl,
+  aspect,
   costs,
   revealed,
   locked,
   onReveal,
 }: GuessBoardProps) {
   return (
-    <div className={styles.board}>
+    <div
+      className={styles.board}
+      style={{ "--aspect": aspect } as CSSProperties}
+    >
       <img className={styles.photo} src={imageUrl} alt="" />
       <div
         className={styles.grid}

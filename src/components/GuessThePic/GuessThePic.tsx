@@ -66,6 +66,7 @@ function GuessThePic() {
 
       <GuessBoard
         imageUrl={round.imageUrl}
+        aspect={round.aspect}
         costs={round.costs}
         revealed={revealed}
         locked={status !== "playing"}

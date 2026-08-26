@@ -3,8 +3,12 @@
 .board {
   position: relative;
   width: 100%;
-  // Fixed ratio so tiles line up regardless of the source image's shape.
-  aspect-ratio: 4 / 3;
+  // The ratio comes from the photo itself (--aspect), so nothing is cropped and
+  // the model's bounding boxes match what the player actually sees. Capping the
+  // width by height keeps tall portraits from running off the screen.
+  aspect-ratio: var(--aspect);
+  max-width: calc(62vh * var(--aspect));
+  margin: 0 auto;
   border-radius: t.$radius-lg;
   overflow: hidden;
   background: t.$surface-raised;
@@ -13,7 +17,8 @@
 .photo {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  // The board already matches the image ratio, so this scales without cropping.
+  object-fit: fill;
   display: block;
 }
 
@@ -31,7 +36,7 @@
   cursor: pointer;
   background: t.$surface;
   color: t.$text-muted;
-  font-size: 15px;
+  font-size: clamp(8px, 1.4vw, 12px);
   font-weight: 600;
   display: flex;
   align-items: center;

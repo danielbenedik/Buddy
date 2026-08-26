@@ -22,6 +22,9 @@ export interface SubjectBoxes {
 export interface GuessRound {
   subject: GuessSubject;
   imageUrl: string;
+  // The photo's true width/height ratio. The board matches it so the model's
+  // bounding boxes line up with what's on screen instead of a cropped version.
+  aspect: number;
   // Row-major tile costs, GUESS_ROWS * GUESS_COLS entries.
   costs: number[];
   boardTotal: number;

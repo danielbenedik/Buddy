@@ -12,7 +12,7 @@ the free Open Library API.
 
 ## 🎯 Guess the Pic
 
-The section the app opens on. A photo is hidden behind a 4x4 grid; each tile shows
+The section the app opens on. A photo is hidden behind a 10x10 grid; each tile shows
 what it costs to uncover that patch, and the goal is to name the picture from as few
 points as possible. Four options are always on screen — one wrong answer ends the run.
 
@@ -26,9 +26,17 @@ filter is what keeps it to actual photographs.
 boxes: one around the subject, plus one to three around the features that most give
 its identity away. `src/utils/guessCost.ts` turns those into a per-tile price from how
 much of each box overlaps each tile, weighted so detail boxes outrank plain subject
-coverage. Prices snap to a 1/2/3/5/8/13 ladder and the board is normalized to about
-100 points total, so scores stay comparable between rounds. If the vision call fails,
-a canvas edge-density heuristic stands in; if that fails too, the board goes flat.
+coverage. Prices snap to a 1/2/3/5/8/13 ladder and the board is normalized to three
+points per tile, so scores stay comparable between rounds. If the vision call fails, a
+canvas edge-density heuristic stands in; if that fails too, the board goes flat and is
+deliberately not cached.
+
+The board takes its aspect ratio from the photo, so nothing is cropped and the model's
+boxes line up with what the player actually sees.
+
+> **Quota note:** each new subject costs one Gemini vision call, and the free tier's
+> daily request cap is small. Boards are cached for 30 days per subject, so replaying
+> is free — but a long first session can exhaust a free key.
 
 Costs and images are cached per subject, and the subject pool is cached daily, so a
 normal session spends almost no quota.

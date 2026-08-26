@@ -6,12 +6,17 @@ export const GENRE_COUNT = 5;
 export const BOOKS_PER_GENRE = 7;
 
 // --- Guess the Pic ---
-export const GUESS_ROWS = 4;
-export const GUESS_COLS = 4;
+export const GUESS_ROWS = 10;
+export const GUESS_COLS = 10;
 export const GUESS_POOL_SIZE = 10;
 // Fibonacci-ish ladder so tile numbers read cleanly instead of 7/4/11/6.
 export const COST_LADDER = [1, 2, 3, 5, 8, 13];
-export const TARGET_BOARD_TOTAL = 100;
+// Scaled by tile count: a fixed total would price a 100-tile board at ~1 per
+// tile and collapse the whole ladder onto its bottom rung.
+export const TARGET_BOARD_TOTAL = GUESS_ROWS * GUESS_COLS * 3;
+// Photos this far from square make a poor board, so their subjects are skipped.
+export const MIN_BOARD_ASPECT = 0.5;
+export const MAX_BOARD_ASPECT = 2.5;
 
 export const READING_TIMES: ReadingTime[] = [2, 5];
 
@@ -81,9 +86,10 @@ export const cacheKeys = {
   search: (media: MediaType, query: string) =>
     `buddy:search:${media}:${query.trim().toLowerCase()}`,
   funFact: (dateKey: string) => `buddy:funfact:${dateKey}`,
-  guessPool: (dateKey: string) => `buddy:guess:pool:${dateKey}`,
+  guessPool: (dateKey: string) => `buddy:guess:pool:v2:${dateKey}`,
   // Image + cost matrix are stable per subject, so they outlive the daily pool.
-  guessBoard: (subjectId: string) => `buddy:guess:board:${subjectId}`,
+  // v2: grid size and image source changed — old boards no longer fit the grid.
+  guessBoard: (subjectId: string) => `buddy:guess:board:v2:${subjectId}`,
   guessBest: "buddy:guess:best",
 };
 

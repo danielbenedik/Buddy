@@ -1,4 +1,4 @@
-import { GUESS_COLS, GUESS_ROWS } from "./constants";
+import { GUESS_COLS, GUESS_ROWS, TARGET_BOARD_TOTAL } from "./constants";
 import {
   boardTotal,
   costsFromImportance,
@@ -68,10 +68,15 @@ describe("costsFromImportance", () => {
     const flat = boardTotal(costsFromImportance(new Array(TILES).fill(0)));
     const peaked = boardTotal(
       costsFromImportance(
-        new Array(TILES).fill(0).map((_, i) => (i < 4 ? 1 : 0)),
+        new Array(TILES).fill(0).map((_, i) => (i < TILES / 4 ? 1 : 0)),
       ),
     );
-    expect(Math.abs(flat - peaked)).toBeLessThan(30);
+    // Ladder snapping costs some precision, but both boards must still land
+    // near the target so run scores stay comparable.
+    [flat, peaked].forEach((total) => {
+      const drift = Math.abs(total - TARGET_BOARD_TOTAL) / TARGET_BOARD_TOTAL;
+      expect(drift).toBeLessThan(0.2);
+    });
   });
 
   test("higher importance never costs less", () => {

@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
 
 import App from "./App";
+import { GUESS_COLS, GUESS_ROWS } from "./utils/constants";
 
 import type { Catalog } from "./types/catalog";
 
@@ -59,8 +60,9 @@ jest.mock("./hooks/useGuessGame", () => ({
         category: "אתרים",
       },
       imageUrl: "https://example.test/eiffel.jpg",
-      costs: [1, 2, 3, 5, 8, 13, 3, 2, 1, 2, 5, 8, 1, 1, 2, 3],
-      boardTotal: 60,
+      aspect: 1.5,
+      costs: new Array(100).fill(3),
+      boardTotal: 300,
       options: [
         { en: "Eiffel Tower", he: "מגדל אייפל" },
         { en: "Big Ben", he: "ביג בן" },
@@ -88,6 +90,12 @@ test("opens on the game section", () => {
   expect(screen.getByText("BUDDY")).toBeInTheDocument();
   expect(screen.getByText("נחש את התמונה")).toBeInTheDocument();
   expect(screen.getByText("מגדל אייפל")).toBeInTheDocument();
+});
+
+test("covers the photo with one tile per grid cell", () => {
+  render(<App />);
+  const tiles = screen.getAllByRole("button", { name: /Reveal this area/ });
+  expect(tiles).toHaveLength(GUESS_ROWS * GUESS_COLS);
 });
 
 test("switches to the catalog", () => {

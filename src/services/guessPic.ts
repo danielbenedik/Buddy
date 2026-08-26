@@ -8,6 +8,8 @@ import {
   GUESS_POOL_TTL,
   guessBoxesPrompt,
   guessPoolPrompt,
+  MAX_BOARD_ASPECT,
+  MIN_BOARD_ASPECT,
   MODEL_ID,
 } from "../utils/constants";
 import {
@@ -16,6 +18,7 @@ import {
   importanceFromBoxes,
   isDegenerate,
 } from "../utils/guessCost";
+import { loadImage } from "../utils/image";
 
 import { importanceFromPixels } from "./saliency";
 import { fetchWikiImage } from "./wikiImage";
@@ -228,6 +231,14 @@ export function shuffle<T>(items: T[]): T[] {
 interface CachedBoard {
   imageUrl: string;
   costs: number[];
+  aspect: number;
+}
+
+interface CostResult {
+  costs: number[];
+  // False when both scoring paths failed and every tile got the same price —
+  // playable, but not worth remembering for a month.
+  scored: boolean;
 }
 
 // Semantic boxes first; canvas edge density if the vision call is unusable;
@@ -235,46 +246,71 @@ interface CachedBoard {
 async function computeCosts(
   imageUrl: string,
   subjectEn: string,
-): Promise<number[]> {
+): Promise<CostResult> {
   try {
     const boxes = await fetchBoxes(imageUrl, subjectEn);
     if (!isDegenerate(boxes.subject) || boxes.details.length) {
-      return costsFromImportance(importanceFromBoxes(boxes));
+      return {
+        costs: costsFromImportance(importanceFromBoxes(boxes)),
+        scored: true,
+      };
     }
   } catch {
     // fall through to the pixel heuristic
   }
 
   try {
-    return costsFromImportance(await importanceFromPixels(imageUrl));
+    const costs = costsFromImportance(await importanceFromPixels(imageUrl));
+    return { costs, scored: true };
   } catch {
-    return costsFromImportance(
-      importanceFromBoxes({ subject: null, details: [] }),
-    );
+    return {
+      costs: costsFromImportance(
+        importanceFromBoxes({ subject: null, details: [] }),
+      ),
+      scored: false,
+    };
   }
 }
 
 export async function buildRound(subject: GuessSubject): Promise<GuessRound> {
   assertConfigured();
 
+  const options = shuffle([subject.answer, ...subject.decoys]);
   const cacheKey = cacheKeys.guessBoard(subject.id);
-  const cached = getCached<CachedBoard>(cacheKey);
 
-  let imageUrl = cached?.imageUrl ?? "";
-  if (!imageUrl) {
-    imageUrl = await fetchWikiImage(subject.wikiTitle);
-    if (!imageUrl) throw new Error(`No image for ${subject.wikiTitle}`);
+  const cached = getCached<CachedBoard>(cacheKey);
+  if (cached) {
+    return {
+      subject,
+      ...cached,
+      boardTotal: boardTotal(cached.costs),
+      options,
+    };
   }
 
-  const costs =
-    cached?.costs ?? (await computeCosts(imageUrl, subject.answer.en));
-  if (!cached) setCached(cacheKey, { imageUrl, costs }, GUESS_BOARD_TTL);
+  const imageUrl = await fetchWikiImage(subject.wikiTitle);
+  if (!imageUrl) throw new Error(`No image for ${subject.wikiTitle}`);
+
+  // A URL is not a picture: Wikimedia answers 429/404 with an HTML page, which
+  // renders as a black board. Decode it here so the caller skips the subject.
+  const image = await loadImage(imageUrl);
+  const aspect = image.naturalWidth / image.naturalHeight;
+  if (aspect < MIN_BOARD_ASPECT || aspect > MAX_BOARD_ASPECT) {
+    throw new Error(`Unusable aspect ratio for ${subject.wikiTitle}`);
+  }
+
+  const { costs, scored } = await computeCosts(imageUrl, subject.answer.en);
+  // Caching a flat board would freeze one bad network moment in for 30 days.
+  if (scored) {
+    setCached(cacheKey, { imageUrl, costs, aspect }, GUESS_BOARD_TTL);
+  }
 
   return {
     subject,
     imageUrl,
     costs,
+    aspect,
     boardTotal: boardTotal(costs),
-    options: shuffle([subject.answer, ...subject.decoys]),
+    options,
   };
 }
