@@ -14,7 +14,12 @@ the free Open Library API.
 
 The section the app opens on. A photo is hidden behind a 10x10 grid; each tile shows
 what it costs to uncover that patch, and the goal is to name the picture from as few
-points as possible. Four options are always on screen — one wrong answer ends the run.
+points as possible. Four options are always on screen.
+
+A run is a fixed ten pictures and is scored like golf: your score is the total tile
+cost spent across the whole run, and lower wins. One wrong answer ends the run with no
+score at all — an unfinished run has no total worth comparing, and scoring a
+variable-length run by its total would make failing on picture one a perfect zero.
 
 **Where the pictures come from.** Gemini proposes a daily pool of famous, visually
 recognizable subjects (landmarks, animals, objects) along with three plausible decoys

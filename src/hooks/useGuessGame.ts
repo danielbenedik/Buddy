@@ -2,7 +2,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { buildRound, getSubjectPool, shuffle } from "../services/guessPic";
 import { getCached, setCached } from "../utils/cache";
-import { BOX_BATCH_SIZE, cacheKeys, GUESS_BOARD_TTL } from "../utils/constants";
+import {
+  BOX_BATCH_SIZE,
+  cacheKeys,
+  GUESS_RECORD_TTL,
+  RUN_LENGTH,
+} from "../utils/constants";
 
 import type {
   GuessOption,
@@ -17,10 +22,17 @@ interface GuessGame {
   error: string | null;
   revealed: number[];
   status: GuessStatus;
+  // Cost of the current picture, and of every picture in the run so far.
   spent: number;
   runSpent: number;
-  streak: number;
-  best: number;
+  // 1-based position in the fixed-length run.
+  pictureNumber: number;
+  runLength: number;
+  // Running total: the solved pictures, plus the current one while it's live.
+  runTotal: number;
+  // Lowest total that has ever cleared a full run; null until one is completed.
+  bestRun: number | null;
+  isNewRecord: boolean;
   reveal: (tile: number) => void;
   guess: (option: GuessOption) => void;
   next: () => void;
@@ -34,10 +46,11 @@ export function useGuessGame(): GuessGame {
   const [revealed, setRevealed] = useState<number[]>([]);
   const [status, setStatus] = useState<GuessStatus>("playing");
   const [runSpent, setRunSpent] = useState(0);
-  const [streak, setStreak] = useState(0);
-  const [best, setBest] = useState(
-    () => getCached<number>(cacheKeys.guessBest) ?? 0,
+  const [pictureNumber, setPictureNumber] = useState(1);
+  const [bestRun, setBestRun] = useState<number | null>(() =>
+    getCached<number>(cacheKeys.guessBestRun),
   );
+  const [isNewRecord, setIsNewRecord] = useState(false);
 
   // Subjects in this run's play order, plus how far into it we are. Reshuffled
   // per run so a restart doesn't replay the same pictures in the same order.
@@ -148,26 +161,34 @@ export function useGuessGame(): GuessGame {
     (option: GuessOption) => {
       if (!round || status !== "playing") return;
 
+      // A wrong answer ends the run without a score — an unfinished run has no
+      // total to compare against a completed one.
       if (option.en !== round.subject.answer.en) {
         setStatus("lost");
         return;
       }
 
-      setStatus("won");
-      setRunSpent((prev) => prev + spent);
-      setStreak((prev) => {
-        const nextStreak = prev + 1;
-        if (nextStreak > best) {
-          setBest(nextStreak);
-          setCached(cacheKeys.guessBest, nextStreak, GUESS_BOARD_TTL);
-        }
-        return nextStreak;
-      });
+      const runTotal = runSpent + spent;
+      setRunSpent(runTotal);
+
+      if (pictureNumber < RUN_LENGTH) {
+        setStatus("won");
+        return;
+      }
+
+      setStatus("finished");
+      const beatsRecord = bestRun === null || runTotal < bestRun;
+      setIsNewRecord(beatsRecord);
+      if (beatsRecord) {
+        setBestRun(runTotal);
+        setCached(cacheKeys.guessBestRun, runTotal, GUESS_RECORD_TTL);
+      }
     },
-    [round, status, spent, best],
+    [round, status, spent, runSpent, pictureNumber, bestRun],
   );
 
   const next = useCallback(() => {
+    setPictureNumber((n) => n + 1);
     const ready = prefetched.current;
     if (ready) {
       prefetched.current = null;
@@ -182,7 +203,8 @@ export function useGuessGame(): GuessGame {
 
   const restart = useCallback(() => {
     setRunSpent(0);
-    setStreak(0);
+    setPictureNumber(1);
+    setIsNewRecord(false);
     prefetched.current = null;
     queue.current = [];
     void startRound(0);
@@ -196,8 +218,11 @@ export function useGuessGame(): GuessGame {
     status,
     spent,
     runSpent,
-    streak,
-    best,
+    runTotal: status === "playing" ? runSpent + spent : runSpent,
+    pictureNumber,
+    runLength: RUN_LENGTH,
+    bestRun,
+    isNewRecord,
     reveal,
     guess,
     next,

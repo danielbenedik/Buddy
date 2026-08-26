@@ -13,6 +13,10 @@ export const GUESS_POOL_SIZE = 10;
 // purpose: batching trades tokens for requests, and a large group would pay for
 // pictures the player may never reach.
 export const BOX_BATCH_SIZE = 3;
+// A run is a fixed distance so totals are comparable between runs — scoring a
+// variable-length run by its total would make failing on picture one a perfect
+// score.
+export const RUN_LENGTH = 10;
 // Fibonacci-ish ladder so tile numbers read cleanly instead of 7/4/11/6.
 export const COST_LADDER = [1, 2, 3, 5, 8, 13];
 // Scaled by tile count: a fixed total would price a 100-tile board at ~1 per
@@ -75,6 +79,7 @@ export const SEARCH_TTL = 7 * DAY;
 export const FUNFACT_TTL = DAY;
 export const GUESS_POOL_TTL = DAY;
 export const GUESS_BOARD_TTL = 30 * DAY;
+export const GUESS_RECORD_TTL = 365 * DAY;
 
 export const cacheKeys = {
   // v2: catalogs now favor the last two decades — invalidates pre-change caches.
@@ -94,7 +99,9 @@ export const cacheKeys = {
   // Image + cost matrix are stable per subject, so they outlive the daily pool.
   // v2: grid size and image source changed — old boards no longer fit the grid.
   guessBoard: (subjectId: string) => `buddy:guess:board:v2:${subjectId}`,
-  guessBest: "buddy:guess:best",
+  // Deliberately not the old `guessBest` key: that held a streak count, and a
+  // stored 1 would read as a one-point run nobody could ever beat.
+  guessBestRun: "buddy:guess:best-run:v1",
 };
 
 export function funFactPrompt(dateLabel: string): string {

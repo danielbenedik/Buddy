@@ -31,4 +31,6 @@ export interface GuessRound {
   options: GuessOption[];
 }
 
-export type GuessStatus = "playing" | "won" | "lost";
+// "won" clears the current picture; "finished" clears the whole run; "lost"
+// ends it early, which scores nothing.
+export type GuessStatus = "playing" | "won" | "lost" | "finished";

@@ -15,8 +15,11 @@ function GuessThePic() {
     status,
     spent,
     runSpent,
-    streak,
-    best,
+    runTotal,
+    pictureNumber,
+    runLength,
+    bestRun,
+    isNewRecord,
     reveal,
     guess,
     next,
@@ -69,13 +72,13 @@ function GuessThePic() {
 
       <div className={styles.stats} dir="rtl" lang="he">
         <span className={styles.stat}>
-          <b>{spent}</b> / {round.boardTotal} בסיבוב
+          תמונה <b>{pictureNumber}</b> מתוך {runLength}
         </span>
         <span className={styles.stat}>
-          רצף <b>{streak}</b>
+          סה״כ <b>{runTotal}</b>
         </span>
         <span className={styles.stat}>
-          שיא <b>{best}</b>
+          שיא <b>{bestRun ?? "—"}</b>
         </span>
       </div>
 
@@ -101,26 +104,48 @@ function GuessThePic() {
 
       {status !== "playing" && (
         <div className={styles.result} dir="rtl" lang="he" ref={resultRef}>
-          {status === "won" ? (
+          {status === "won" && (
             <>
               <p className={styles.verdict}>
                 נכון! {round.subject.answer.he} — {spent} נקודות
+              </p>
+              <p className={styles.runScore}>
+                סה״כ בריצה: {runSpent} נקודות · נשארו{" "}
+                {runLength - pictureNumber} תמונות.
               </p>
               <button type="button" className={styles.action} onClick={next}>
                 התמונה הבאה
               </button>
             </>
-          ) : (
+          )}
+
+          {status === "finished" && (
+            <>
+              <p className={styles.verdict}>
+                סיימת את הריצה! {runSpent} נקודות ל־{runLength} תמונות.
+              </p>
+              <p className={styles.runScore}>
+                {isNewRecord
+                  ? "שיא חדש! ככל שהניקוד נמוך יותר — טוב יותר."
+                  : `השיא שלך: ${bestRun} נקודות.`}
+              </p>
+              <button type="button" className={styles.action} onClick={restart}>
+                ריצה חדשה
+              </button>
+            </>
+          )}
+
+          {status === "lost" && (
             <>
               <p className={styles.verdict}>
                 טעות. זה היה {round.subject.answer.he}.
               </p>
               <p className={styles.runScore}>
-                הרצף נגמר — {streak === 1 ? "תמונה אחת" : `${streak} תמונות`},{" "}
-                {runSpent + spent} נקודות.
+                הריצה נגמרה בתמונה {pictureNumber} מתוך {runLength}, אז אין
+                ניקוד. רק ריצה מלאה נספרת.
               </p>
               <button type="button" className={styles.action} onClick={restart}>
-                סיבוב חדש
+                ריצה חדשה
               </button>
             </>
           )}
