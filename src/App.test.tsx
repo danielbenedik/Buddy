@@ -1,7 +1,8 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
 
 import App from "./App";
+import { GUESS_COLS, GUESS_ROWS } from "./utils/constants";
 
 import type { Catalog } from "./types/catalog";
 
@@ -40,11 +41,68 @@ jest.mock("./hooks/useCatalog", () => ({
 jest.mock("./services/gemini", () => ({
   getCatalog: jest.fn(),
   generateSummaryStream: jest.fn(),
+  getFunFact: () => Promise.resolve(""),
   hasApiKey: () => false,
 }));
 
-test("renders the navbar and catalog content", () => {
+jest.mock("./hooks/useGuessGame", () => ({
+  useGuessGame: () => ({
+    round: {
+      subject: {
+        id: "eiffel-tower",
+        wikiTitle: "Eiffel Tower",
+        answer: { en: "Eiffel Tower", he: "מגדל אייפל" },
+        decoys: [
+          { en: "Big Ben", he: "ביג בן" },
+          { en: "Colosseum", he: "קולוסיאום" },
+          { en: "Taj Mahal", he: "טאג' מהאל" },
+        ],
+        category: "אתרים",
+      },
+      imageUrl: "https://example.test/eiffel.jpg",
+      aspect: 1.5,
+      costs: new Array(100).fill(3),
+      boardTotal: 300,
+      options: [
+        { en: "Eiffel Tower", he: "מגדל אייפל" },
+        { en: "Big Ben", he: "ביג בן" },
+        { en: "Colosseum", he: "קולוסיאום" },
+        { en: "Taj Mahal", he: "טאג' מהאל" },
+      ],
+    },
+    loading: false,
+    error: null,
+    revealed: [],
+    status: "playing",
+    spent: 0,
+    runSpent: 0,
+    runTotal: 0,
+    pictureNumber: 1,
+    runLength: 10,
+    bestRun: null,
+    isNewRecord: false,
+    reveal: jest.fn(),
+    guess: jest.fn(),
+    next: jest.fn(),
+    restart: jest.fn(),
+  }),
+}));
+
+test("opens on the game section", () => {
   render(<App />);
   expect(screen.getByText("BUDDY")).toBeInTheDocument();
+  expect(screen.getByText("נחש את התמונה")).toBeInTheDocument();
+  expect(screen.getByText("מגדל אייפל")).toBeInTheDocument();
+});
+
+test("covers the photo with one tile per grid cell", () => {
+  render(<App />);
+  const tiles = screen.getAllByRole("button", { name: /Reveal this area/ });
+  expect(tiles).toHaveLength(GUESS_ROWS * GUESS_COLS);
+});
+
+test("switches to the catalog", () => {
+  render(<App />);
+  fireEvent.click(screen.getByRole("tab", { name: "Books" }));
   expect(screen.getByText("Classics")).toBeInTheDocument();
 });

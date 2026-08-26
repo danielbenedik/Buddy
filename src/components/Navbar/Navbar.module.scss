@@ -18,6 +18,9 @@
   display: flex;
   align-items: center;
   gap: 20px;
+  // min-width:0 lets the toggle scroll inside the bar instead of pushing its
+  // last tab off the viewport.
+  min-width: 0;
 }
 
 .logo {
@@ -33,6 +36,7 @@
 
 .toggleWrap {
   display: flex;
+  min-width: 0;
 }
 
 // On mobile, when the search is open let it take over the toggle's space.

@@ -1,15 +1,13 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 import styles from "./app.module.scss";
-import Hero from "./components/Hero/Hero";
+import Catalog from "./components/Catalog/Catalog";
+import GuessThePic from "./components/GuessThePic/GuessThePic";
 import LoadingFact from "./components/LoadingFact/LoadingFact";
-import Modal from "./components/Modal/Modal";
 import Navbar from "./components/Navbar/Navbar";
-import Row from "./components/Row/Row";
-import Skeleton from "./components/Skeleton/Skeleton";
-import { useCatalog } from "./hooks/useCatalog";
 
-import type { Book, MediaType, ReadingTime } from "./types/catalog";
+import type { Book, ReadingTime } from "./types/catalog";
+import type { AppSection } from "./types/section";
 
 interface Selection {
   book: Book;
@@ -17,67 +15,49 @@ interface Selection {
 }
 
 function App() {
-  const [media, setMedia] = useState<MediaType>("book");
+  const [section, setSection] = useState<AppSection>("guess");
   const [selected, setSelected] = useState<Selection | null>(null);
   // The daily fact stays up until the user dismisses it — it never auto-closes.
   const [factOpen, setFactOpen] = useState(true);
-  const { catalog, loading, error, refreshGenre } = useCatalog(media);
-
-  const genreLabel = catalog?.genres.find((g) =>
-    g.books.some((b) => b.id === selected?.book.id),
-  )?.label;
+  const [catalogLoading, setCatalogLoading] = useState(false);
 
   const handleSelect = (book: Book, minutes: ReadingTime) =>
     setSelected({ book, minutes });
 
-  const handleMediaChange = (next: MediaType) => {
+  const handleSectionChange = (next: AppSection) => {
     setSelected(null);
-    setMedia(next);
+    setSection(next);
   };
+
+  const handleLoadingChange = useCallback(
+    (loading: boolean) => setCatalogLoading(loading),
+    [],
+  );
 
   return (
     <div className={styles.app}>
       <Navbar
-        media={media}
-        onMediaChange={handleMediaChange}
+        section={section}
+        onSectionChange={handleSectionChange}
         onSelect={handleSelect}
       />
 
-      {loading && <Skeleton />}
       {factOpen && (
-        <LoadingFact loading={loading} onClose={() => setFactOpen(false)} />
+        <LoadingFact
+          loading={catalogLoading}
+          onClose={() => setFactOpen(false)}
+        />
       )}
 
-      {error && (
-        <div className={styles.center}>
-          <p>Couldn’t load the catalog.</p>
-          <p className={styles.errorDetail}>{error}</p>
-        </div>
-      )}
-
-      {catalog && (
-        <main>
-          <Hero book={catalog.hero} onSelect={handleSelect} />
-          {catalog.genres.map((genre) => (
-            <Row
-              key={genre.id}
-              genre={genre}
-              onSelect={handleSelect}
-              onRefresh={refreshGenre}
-            />
-          ))}
-        </main>
-      )}
-
-      {selected && (
-        <Modal
-          book={selected.book}
-          minutes={selected.minutes}
-          genreLabel={genreLabel}
-          onMinutesChange={(minutes) =>
-            setSelected({ book: selected.book, minutes })
-          }
-          onClose={() => setSelected(null)}
+      {section === "guess" ? (
+        <GuessThePic />
+      ) : (
+        <Catalog
+          key={section}
+          media={section}
+          selection={selected}
+          onSelectionChange={setSelected}
+          onLoadingChange={handleLoadingChange}
         />
       )}
     </div>

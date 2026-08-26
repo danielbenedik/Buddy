@@ -1,0 +1,44 @@
+@use "../../styles/tokens" as t;
+
+.options {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  width: 100%;
+}
+
+.option {
+  border: 0.5px solid t.$border;
+  cursor: pointer;
+  padding: 14px 12px;
+  border-radius: t.$radius-sm;
+  background: t.$surface;
+  color: t.$text;
+  font-size: 15px;
+  font-weight: 500;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.option:hover:not(:disabled) {
+  background: t.$accent;
+  border-color: t.$accent;
+}
+
+.option:disabled {
+  cursor: default;
+  color: t.$text-dim;
+}
+
+.correct {
+  background: rgba(45, 122, 74, 0.35);
+  border-color: #2d7a4a;
+  color: t.$text;
+}
+
+@media (max-width: 520px) {
+  .options {
+    grid-template-columns: 1fr;
+  }
+}
