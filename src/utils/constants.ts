@@ -79,7 +79,6 @@ export const SEARCH_TTL = 7 * DAY;
 export const FUNFACT_TTL = DAY;
 export const GUESS_POOL_TTL = DAY;
 export const GUESS_BOARD_TTL = 30 * DAY;
-export const GUESS_RECORD_TTL = 365 * DAY;
 
 export const cacheKeys = {
   // v2: catalogs now favor the last two decades — invalidates pre-change caches.
@@ -99,9 +98,11 @@ export const cacheKeys = {
   // Image + cost matrix are stable per subject, so they outlive the daily pool.
   // v2: grid size and image source changed — old boards no longer fit the grid.
   guessBoard: (subjectId: string) => `buddy:guess:board:v2:${subjectId}`,
-  // Deliberately not the old `guessBest` key: that held a streak count, and a
-  // stored 1 would read as a one-point run nobody could ever beat.
-  guessBestRun: "buddy:guess:best-run:v1",
+  // Deliberately not the original `guessBest` key: that held a streak count, and
+  // a stored 1 would read as a one-point run nobody could ever beat.
+  // v2 carries the date alongside the score, and never expires.
+  guessBestRun: "buddy:guess:best-run:v2",
+  guessBestRunLegacy: "buddy:guess:best-run:v1",
 };
 
 export function funFactPrompt(dateLabel: string): string {

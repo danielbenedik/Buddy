@@ -34,3 +34,9 @@ export interface GuessRound {
 // "won" clears the current picture; "finished" clears the whole run; "lost"
 // ends it early, which scores nothing.
 export type GuessStatus = "playing" | "won" | "lost" | "finished";
+
+export interface RunRecord {
+  // Lowest total tile cost that has cleared a full run.
+  score: number;
+  achievedAt: number;
+}

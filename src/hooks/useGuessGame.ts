@@ -1,20 +1,30 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { buildRound, getSubjectPool, shuffle } from "../services/guessPic";
-import { getCached, setCached } from "../utils/cache";
-import {
-  BOX_BATCH_SIZE,
-  cacheKeys,
-  GUESS_RECORD_TTL,
-  RUN_LENGTH,
-} from "../utils/constants";
+import { getCached, getStored, setStored } from "../utils/cache";
+import { BOX_BATCH_SIZE, cacheKeys, RUN_LENGTH } from "../utils/constants";
 
 import type {
   GuessOption,
   GuessRound,
   GuessStatus,
   GuessSubject,
+  RunRecord,
 } from "../types/guess";
+
+// The v1 record was a bare number behind a TTL. Adopt it so a player who
+// already set one doesn't lose it to the format change.
+function loadRecord(): RunRecord | null {
+  const stored = getStored<RunRecord>(cacheKeys.guessBestRun);
+  if (stored) return stored;
+
+  const legacy = getCached<number>(cacheKeys.guessBestRunLegacy);
+  if (typeof legacy !== "number") return null;
+
+  const migrated = { score: legacy, achievedAt: Date.now() };
+  setStored(cacheKeys.guessBestRun, migrated);
+  return migrated;
+}
 
 interface GuessGame {
   round: GuessRound | null;
@@ -30,8 +40,9 @@ interface GuessGame {
   runLength: number;
   // Running total: the solved pictures, plus the current one while it's live.
   runTotal: number;
-  // Lowest total that has ever cleared a full run; null until one is completed.
-  bestRun: number | null;
+  // Lowest total that has ever cleared a full run, with the date it was set.
+  // Null until a run is completed.
+  bestRun: RunRecord | null;
   isNewRecord: boolean;
   reveal: (tile: number) => void;
   guess: (option: GuessOption) => void;
@@ -47,9 +58,7 @@ export function useGuessGame(): GuessGame {
   const [status, setStatus] = useState<GuessStatus>("playing");
   const [runSpent, setRunSpent] = useState(0);
   const [pictureNumber, setPictureNumber] = useState(1);
-  const [bestRun, setBestRun] = useState<number | null>(() =>
-    getCached<number>(cacheKeys.guessBestRun),
-  );
+  const [bestRun, setBestRun] = useState<RunRecord | null>(loadRecord);
   const [isNewRecord, setIsNewRecord] = useState(false);
 
   // Subjects in this run's play order, plus how far into it we are. Reshuffled
@@ -177,11 +186,12 @@ export function useGuessGame(): GuessGame {
       }
 
       setStatus("finished");
-      const beatsRecord = bestRun === null || runTotal < bestRun;
+      const beatsRecord = bestRun === null || runTotal < bestRun.score;
       setIsNewRecord(beatsRecord);
       if (beatsRecord) {
-        setBestRun(runTotal);
-        setCached(cacheKeys.guessBestRun, runTotal, GUESS_RECORD_TTL);
+        const record = { score: runTotal, achievedAt: Date.now() };
+        setBestRun(record);
+        setStored(cacheKeys.guessBestRun, record);
       }
     },
     [round, status, spent, runSpent, pictureNumber, bestRun],

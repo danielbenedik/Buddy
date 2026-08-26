@@ -28,6 +28,17 @@ function GuessThePic() {
 
   const resultRef = useRef<HTMLDivElement>(null);
 
+  // Once the run has already cost more than the record, beating it is out of
+  // reach — worth showing while there's still a run to abandon or push through.
+  const overRecord = bestRun !== null && runTotal > bestRun.score;
+  const recordDate = bestRun
+    ? new Date(bestRun.achievedAt).toLocaleDateString("he-IL", {
+        day: "numeric",
+        month: "numeric",
+        year: "2-digit",
+      })
+    : null;
+
   // The verdict sits below the board, so on a phone it can land off-screen —
   // bring it into view so the answer is never missed.
   useEffect(() => {
@@ -74,11 +85,14 @@ function GuessThePic() {
         <span className={styles.stat}>
           תמונה <b>{pictureNumber}</b> מתוך {runLength}
         </span>
-        <span className={styles.stat}>
+        <span className={`${styles.stat} ${overRecord ? styles.over : ""}`}>
           סה״כ <b>{runTotal}</b>
         </span>
         <span className={styles.stat}>
-          שיא <b>{bestRun ?? "—"}</b>
+          שיא <b>{bestRun ? bestRun.score : "—"}</b>
+          {recordDate && (
+            <small className={styles.recordDate}> {recordDate}</small>
+          )}
         </span>
       </div>
 
@@ -127,7 +141,7 @@ function GuessThePic() {
               <p className={styles.runScore}>
                 {isNewRecord
                   ? "שיא חדש! ככל שהניקוד נמוך יותר — טוב יותר."
-                  : `השיא שלך: ${bestRun} נקודות.`}
+                  : `השיא שלך: ${bestRun?.score} נקודות (${recordDate}).`}
               </p>
               <button type="button" className={styles.action} onClick={restart}>
                 ריצה חדשה

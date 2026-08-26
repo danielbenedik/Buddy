@@ -119,7 +119,7 @@ test("a worse second run does not overwrite the record", async () => {
   const { result } = await startedGame();
 
   await completeRun(result, 1);
-  expect(result.current.bestRun).toBe(RUN_LENGTH * 3);
+  expect(result.current.bestRun?.score).toBe(RUN_LENGTH * 3);
   expect(result.current.isNewRecord).toBe(true);
 
   await act(async () => {
@@ -128,14 +128,14 @@ test("a worse second run does not overwrite the record", async () => {
   await completeRun(result, 2); // twice the cost
 
   expect(result.current.isNewRecord).toBe(false);
-  expect(result.current.bestRun).toBe(RUN_LENGTH * 3);
+  expect(result.current.bestRun?.score).toBe(RUN_LENGTH * 3);
 });
 
 test("a better run replaces the record", async () => {
   const { result } = await startedGame();
 
   await completeRun(result, 3);
-  expect(result.current.bestRun).toBe(RUN_LENGTH * 9);
+  expect(result.current.bestRun?.score).toBe(RUN_LENGTH * 9);
 
   await act(async () => {
     result.current.restart();
@@ -143,7 +143,7 @@ test("a better run replaces the record", async () => {
   await completeRun(result, 1);
 
   expect(result.current.isNewRecord).toBe(true);
-  expect(result.current.bestRun).toBe(RUN_LENGTH * 3);
+  expect(result.current.bestRun?.score).toBe(RUN_LENGTH * 3);
 });
 
 test("only a full run sets a record", async () => {
@@ -151,7 +151,7 @@ test("only a full run sets a record", async () => {
 
   for (let i = 0; i < RUN_LENGTH; i += 1) {
     await clearPicture(result, 1);
-    expect(result.current.bestRun).toBe(
+    expect(result.current.bestRun?.score ?? null).toBe(
       i === RUN_LENGTH - 1 ? RUN_LENGTH * 3 : null,
     );
     if (i < RUN_LENGTH - 1) {
@@ -163,4 +163,43 @@ test("only a full run sets a record", async () => {
 
   expect(result.current.status).toBe("finished");
   expect(result.current.isNewRecord).toBe(true);
+});
+
+test("the record survives a remount and carries its date", async () => {
+  const first = await startedGame();
+  await completeRun(first.result, 1);
+  const setAt = first.result.current.bestRun?.achievedAt;
+  expect(setAt).toEqual(expect.any(Number));
+
+  // A fresh mount reads it back from storage, as a later visit would.
+  const { result } = await startedGame();
+  expect(result.current.bestRun).toEqual({
+    score: RUN_LENGTH * 3,
+    achievedAt: setAt,
+  });
+});
+
+test("adopts a record saved in the older format", async () => {
+  // v1 stored a bare number behind the TTL cache envelope.
+  localStorage.setItem(
+    "buddy:guess:best-run:v1",
+    JSON.stringify({ data: 42, expires: Date.now() + 1000 }),
+  );
+
+  const { result } = await startedGame();
+  expect(result.current.bestRun?.score).toBe(42);
+  // ...and is rewritten in the new format so the TTL can't drop it later.
+  expect(
+    JSON.parse(localStorage.getItem("buddy:guess:best-run:v2") as string).score,
+  ).toBe(42);
+});
+
+test("a record with no expiry outlives the TTL cache format", async () => {
+  const { result } = await startedGame();
+  await completeRun(result, 1);
+
+  const raw = JSON.parse(
+    localStorage.getItem("buddy:guess:best-run:v2") as string,
+  );
+  expect(raw).not.toHaveProperty("expires");
 });

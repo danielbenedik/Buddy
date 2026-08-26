@@ -26,3 +26,22 @@ export function setCached<T>(key: string, data: T, ttl: number): void {
     // Ignore quota / serialization errors — caching is best-effort.
   }
 }
+
+// Records aren't cache — they're the player's own history, so they're stored
+// without an expiry rather than through the TTL helpers above.
+export function getStored<T>(key: string): T | null {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as T) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function setStored<T>(key: string, data: T): void {
+  try {
+    localStorage.setItem(key, JSON.stringify(data));
+  } catch {
+    // Ignore quota / serialization errors — best-effort, same as the cache.
+  }
+}

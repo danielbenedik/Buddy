@@ -21,6 +21,10 @@ cost spent across the whole run, and lower wins. One wrong answer ends the run w
 score at all — an unfinished run has no total worth comparing, and scoring a
 variable-length run by its total would make failing on picture one a perfect zero.
 
+Your best run is kept in `localStorage` with the date you set it, and unlike the
+caches it never expires. It shows next to the running total while you play, and the
+total turns red once the run has already cost more than the record.
+
 **Where the pictures come from.** Gemini proposes a daily pool of famous, visually
 recognizable subjects (landmarks, animals, objects) along with three plausible decoys
 each. The photo itself comes from Wikipedia's `media-list` REST endpoint, filtered to

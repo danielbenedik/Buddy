@@ -38,6 +38,15 @@
   font-size: 15px;
 }
 
+.over b {
+  color: t.$accent;
+}
+
+.recordDate {
+  color: t.$text-dim;
+  font-size: 11px;
+}
+
 .category {
   margin: 0;
   text-align: center;
