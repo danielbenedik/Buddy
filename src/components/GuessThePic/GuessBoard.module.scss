@@ -44,7 +44,11 @@
   color: t.$text;
   // Sized off the tile itself: the board is at most 588px wide, so a tile is
   // roughly its width divided by the column count.
-  font-size: clamp(11px, calc(min(100vw - 32px, 588px) / var(--cols, 10) * 0.3), 22px);
+  font-size: clamp(
+    11px,
+    calc(min(100vw - 32px, 588px) / var(--cols, 10) * 0.3),
+    22px
+  );
   font-weight: 700;
   display: flex;
   align-items: center;
