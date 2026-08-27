@@ -13,7 +13,7 @@ export const GUESS_POOL_SIZE = 10;
 export const BOX_BATCH_SIZE = 3;
 // Grid side per picture in the run: the board grows as the run progresses, so
 // early pictures are cheap to probe and the last one is the hardest.
-export const GUESS_GRID_SIZES = [5, 6, 7, 8, 10];
+export const GUESS_GRID_SIZES = [6, 7, 8, 9, 10];
 // A run is a fixed shape (same lengths, same grids) so totals are comparable
 // between runs.
 export const RUN_LENGTH = GUESS_GRID_SIZES.length;

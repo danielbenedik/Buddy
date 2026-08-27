@@ -60,9 +60,9 @@ jest.mock("./hooks/useGuessGame", () => ({
       },
       imageUrl: "https://example.test/eiffel.jpg",
       aspect: 1.5,
-      gridSize: 5,
-      costs: new Array(25).fill(3),
-      boardTotal: 75,
+      gridSize: 6,
+      costs: new Array(36).fill(3),
+      boardTotal: 108,
       options: [
         { en: "Eiffel Tower", he: "מגדל אייפל" },
         { en: "Big Ben", he: "ביג בן" },
@@ -99,8 +99,8 @@ test("opens on the game section", () => {
 test("covers the photo with one tile per grid cell", () => {
   render(<App />);
   const tiles = screen.getAllByRole("button", { name: /Reveal this area/ });
-  // Matches the mocked round: a 5x5 opening board.
-  expect(tiles).toHaveLength(25);
+  // Matches the mocked round: a 6x6 opening board.
+  expect(tiles).toHaveLength(36);
 });
 
 test("switches to the catalog", () => {
