@@ -83,8 +83,8 @@ export function useGuessGame(): GuessGame {
     0,
   );
 
-  const refillQueue = useCallback(async (force: boolean) => {
-    queue.current = shuffle(await getSubjectPool(force));
+  const refillQueue = useCallback(async () => {
+    queue.current = shuffle(await getSubjectPool());
     position.current = 0;
   }, []);
 
@@ -95,7 +95,7 @@ export function useGuessGame(): GuessGame {
       start: number,
       gridSize: number,
     ): Promise<{ round: GuessRound; at: number }> => {
-      if (!queue.current.length) await refillQueue(false);
+      if (!queue.current.length) await refillQueue();
 
       // Hand buildRound the subjects that follow so it can price them in the
       // same vision call instead of one request each.
@@ -117,7 +117,7 @@ export function useGuessGame(): GuessGame {
       const found = await attempt(start);
       if (found) return found;
 
-      await refillQueue(true);
+      await refillQueue();
       const refilled = await attempt(0);
       if (refilled) return refilled;
 
