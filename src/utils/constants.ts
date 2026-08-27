@@ -6,22 +6,29 @@ export const GENRE_COUNT = 5;
 export const BOOKS_PER_GENRE = 7;
 
 // --- Guess the Pic ---
-export const GUESS_ROWS = 10;
-export const GUESS_COLS = 10;
 export const GUESS_POOL_SIZE = 10;
 // Boxes for several subjects are requested in one vision call. Kept small on
 // purpose: batching trades tokens for requests, and a large group would pay for
 // pictures the player may never reach.
 export const BOX_BATCH_SIZE = 3;
-// A run is a fixed distance so totals are comparable between runs — scoring a
-// variable-length run by its total would make failing on picture one a perfect
-// score.
-export const RUN_LENGTH = 10;
+// Grid side per picture in the run: the board grows as the run progresses, so
+// early pictures are cheap to probe and the last one is the hardest.
+export const GUESS_GRID_SIZES = [5, 6, 7, 8, 10];
+// A run is a fixed shape (same lengths, same grids) so totals are comparable
+// between runs.
+export const RUN_LENGTH = GUESS_GRID_SIZES.length;
+export function gridSizeFor(pictureNumber: number): number {
+  const index = Math.min(Math.max(pictureNumber, 1), RUN_LENGTH) - 1;
+  return GUESS_GRID_SIZES[index];
+}
+// A wrong guess no longer ends the run — it just costs points, priced so it
+// always hurts more than revealing a few extra tiles would have.
+export const MISS_PENALTY = 15;
 // Fibonacci-ish ladder so tile numbers read cleanly instead of 7/4/11/6.
 export const COST_LADDER = [1, 2, 3, 5, 8, 13];
 // Scaled by tile count: a fixed total would price a 100-tile board at ~1 per
 // tile and collapse the whole ladder onto its bottom rung.
-export const TARGET_BOARD_TOTAL = GUESS_ROWS * GUESS_COLS * 3;
+export const TARGET_TILE_COST = 3;
 // Photos this far from square make a poor board, so their subjects are skipped.
 export const MIN_BOARD_ASPECT = 0.5;
 export const MAX_BOARD_ASPECT = 2.5;
@@ -95,9 +102,10 @@ export const cacheKeys = {
     `buddy:search:${media}:${query.trim().toLowerCase()}`,
   funFact: (dateKey: string) => `buddy:funfact:${dateKey}`,
   guessPool: (dateKey: string) => `buddy:guess:pool:v2:${dateKey}`,
-  // Image + cost matrix are stable per subject, so they outlive the daily pool.
-  // v2: grid size and image source changed — old boards no longer fit the grid.
-  guessBoard: (subjectId: string) => `buddy:guess:board:v2:${subjectId}`,
+  // Image + bounding boxes are stable per subject, so they outlive the daily
+  // pool. v3: stores boxes instead of costs — the grid size now varies per
+  // picture, so costs are derived per size at round build time.
+  guessBoard: (subjectId: string) => `buddy:guess:board:v3:${subjectId}`,
   // Deliberately not the original `guessBest` key: that held a streak count, and
   // a stored 1 would read as a one-point run nobody could ever beat.
   // v2 carries the date alongside the score, and never expires.

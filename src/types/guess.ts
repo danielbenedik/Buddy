@@ -25,14 +25,16 @@ export interface GuessRound {
   // The photo's true width/height ratio. The board matches it so the model's
   // bounding boxes line up with what's on screen instead of a cropped version.
   aspect: number;
-  // Row-major tile costs, GUESS_ROWS * GUESS_COLS entries.
+  // Board side length; grows over the run (see GUESS_GRID_SIZES).
+  gridSize: number;
+  // Row-major tile costs, gridSize * gridSize entries.
   costs: number[];
   boardTotal: number;
   options: GuessOption[];
 }
 
-// "won" clears the current picture; "finished" clears the whole run; "lost"
-// ends it early, which scores nothing.
+// "won"/"lost" settle the current picture (a miss costs a penalty but the run
+// goes on); "finished" closes the whole run after the last picture.
 export type GuessStatus = "playing" | "won" | "lost" | "finished";
 
 export interface RunRecord {

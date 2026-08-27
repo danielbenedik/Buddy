@@ -2,7 +2,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { buildRound, getSubjectPool, shuffle } from "../services/guessPic";
 import { getCached, getStored, setStored } from "../utils/cache";
-import { BOX_BATCH_SIZE, cacheKeys, RUN_LENGTH } from "../utils/constants";
+import {
+  BOX_BATCH_SIZE,
+  cacheKeys,
+  gridSizeFor,
+  MISS_PENALTY,
+  RUN_LENGTH,
+} from "../utils/constants";
 
 import type {
   GuessOption,
@@ -44,6 +50,8 @@ interface GuessGame {
   // Null until a run is completed.
   bestRun: RunRecord | null;
   isNewRecord: boolean;
+  // Whether the final picture's guess was right — "finished" alone can't say.
+  lastCorrect: boolean;
   reveal: (tile: number) => void;
   guess: (option: GuessOption) => void;
   next: () => void;
@@ -60,6 +68,7 @@ export function useGuessGame(): GuessGame {
   const [pictureNumber, setPictureNumber] = useState(1);
   const [bestRun, setBestRun] = useState<RunRecord | null>(loadRecord);
   const [isNewRecord, setIsNewRecord] = useState(false);
+  const [lastCorrect, setLastCorrect] = useState(true);
 
   // Subjects in this run's play order, plus how far into it we are. Reshuffled
   // per run so a restart doesn't replay the same pictures in the same order.
@@ -82,7 +91,10 @@ export function useGuessGame(): GuessGame {
   // A subject can fail on a missing or unusable photo, so walk forward until a
   // round builds. Running off the end pulls a fresh pool rather than dead-ending.
   const loadFrom = useCallback(
-    async (start: number): Promise<{ round: GuessRound; at: number }> => {
+    async (
+      start: number,
+      gridSize: number,
+    ): Promise<{ round: GuessRound; at: number }> => {
       if (!queue.current.length) await refillQueue(false);
 
       // Hand buildRound the subjects that follow so it can price them in the
@@ -92,7 +104,7 @@ export function useGuessGame(): GuessGame {
           try {
             const upcoming = queue.current.slice(i + 1, i + BOX_BATCH_SIZE);
             return {
-              round: await buildRound(queue.current[i], upcoming),
+              round: await buildRound(queue.current[i], gridSize, upcoming),
               at: i,
             };
           } catch {
@@ -115,11 +127,11 @@ export function useGuessGame(): GuessGame {
   );
 
   const startRound = useCallback(
-    async (start: number) => {
+    async (start: number, gridSize: number) => {
       setLoading(true);
       setError(null);
       try {
-        const { round: next, at } = await loadFrom(start);
+        const { round: next, at } = await loadFrom(start, gridSize);
         position.current = at;
         setRound(next);
         setRevealed([]);
@@ -136,15 +148,17 @@ export function useGuessGame(): GuessGame {
   );
 
   useEffect(() => {
-    void startRound(0);
+    void startRound(0, gridSizeFor(1));
   }, [startRound]);
 
   // Warm the next round's image + costs while the player is still on this one.
   useEffect(() => {
     if (!round || status !== "playing") return;
+    // The last picture has no successor — nothing to warm.
+    if (pictureNumber >= RUN_LENGTH) return;
     let cancelled = false;
     prefetched.current = null;
-    loadFrom(position.current + 1)
+    loadFrom(position.current + 1, gridSizeFor(pictureNumber + 1))
       .then((ready) => {
         if (!cancelled) prefetched.current = ready;
       })
@@ -170,18 +184,16 @@ export function useGuessGame(): GuessGame {
     (option: GuessOption) => {
       if (!round || status !== "playing") return;
 
-      // A wrong answer ends the run without a score — an unfinished run has no
-      // total to compare against a completed one.
-      if (option.en !== round.subject.answer.en) {
-        setStatus("lost");
-        return;
-      }
+      // A miss doesn't end the run — it adds a flat penalty on top of the
+      // tiles already paid for, and the run moves on to the next picture.
+      const correct = option.en === round.subject.answer.en;
+      setLastCorrect(correct);
 
-      const runTotal = runSpent + spent;
+      const runTotal = runSpent + spent + (correct ? 0 : MISS_PENALTY);
       setRunSpent(runTotal);
 
       if (pictureNumber < RUN_LENGTH) {
-        setStatus("won");
+        setStatus(correct ? "won" : "lost");
         return;
       }
 
@@ -208,16 +220,17 @@ export function useGuessGame(): GuessGame {
       setStatus("playing");
       return;
     }
-    void startRound(position.current + 1);
-  }, [startRound]);
+    void startRound(position.current + 1, gridSizeFor(pictureNumber + 1));
+  }, [startRound, pictureNumber]);
 
   const restart = useCallback(() => {
     setRunSpent(0);
     setPictureNumber(1);
     setIsNewRecord(false);
+    setLastCorrect(true);
     prefetched.current = null;
     queue.current = [];
-    void startRound(0);
+    void startRound(0, gridSizeFor(1));
   }, [startRound]);
 
   return {
@@ -233,6 +246,7 @@ export function useGuessGame(): GuessGame {
     runLength: RUN_LENGTH,
     bestRun,
     isNewRecord,
+    lastCorrect,
     reveal,
     guess,
     next,

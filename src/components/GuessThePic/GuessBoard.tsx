@@ -1,5 +1,3 @@
-import { GUESS_COLS, GUESS_ROWS } from "../../utils/constants";
-
 import styles from "./GuessBoard.module.scss";
 
 import type { CSSProperties } from "react";
@@ -7,6 +5,7 @@ import type { CSSProperties } from "react";
 interface GuessBoardProps {
   imageUrl: string;
   aspect: number;
+  gridSize: number;
   costs: number[];
   revealed: number[];
   locked: boolean;
@@ -16,6 +15,7 @@ interface GuessBoardProps {
 function GuessBoard({
   imageUrl,
   aspect,
+  gridSize,
   costs,
   revealed,
   locked,
@@ -24,14 +24,14 @@ function GuessBoard({
   return (
     <div
       className={styles.board}
-      style={{ "--aspect": aspect } as CSSProperties}
+      style={{ "--aspect": aspect, "--cols": gridSize } as CSSProperties}
     >
       <img className={styles.photo} src={imageUrl} alt="" />
       <div
         className={styles.grid}
         style={{
-          gridTemplateColumns: `repeat(${GUESS_COLS}, 1fr)`,
-          gridTemplateRows: `repeat(${GUESS_ROWS}, 1fr)`,
+          gridTemplateColumns: `repeat(${gridSize}, 1fr)`,
+          gridTemplateRows: `repeat(${gridSize}, 1fr)`,
         }}
       >
         {costs.map((cost, tile) => {

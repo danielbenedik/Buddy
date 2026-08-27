@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 
 import { useGuessGame } from "../../hooks/useGuessGame";
+import { MISS_PENALTY } from "../../utils/constants";
 
 import GuessBoard from "./GuessBoard";
 import GuessOptions from "./GuessOptions";
@@ -20,6 +21,7 @@ function GuessThePic() {
     runLength,
     bestRun,
     isNewRecord,
+    lastCorrect,
     reveal,
     guess,
     next,
@@ -96,9 +98,13 @@ function GuessThePic() {
         </span>
       </div>
 
+      {/* Keyed per picture: fresh tiles mount fully covered instead of fading
+          in over the previous round's open state, which flashed the new photo. */}
       <GuessBoard
+        key={round.subject.id}
         imageUrl={round.imageUrl}
         aspect={round.aspect}
+        gridSize={round.gridSize}
         costs={round.costs}
         revealed={revealed}
         locked={status !== "playing"}
@@ -136,6 +142,9 @@ function GuessThePic() {
           {status === "finished" && (
             <>
               <p className={styles.verdict}>
+                {lastCorrect
+                  ? `נכון! ${round.subject.answer.he}. `
+                  : `טעות — זה היה ${round.subject.answer.he} (+${MISS_PENALTY} עונש). `}
                 סיימת את הריצה! {runSpent} נקודות ל־{runLength} תמונות.
               </p>
               <p className={styles.runScore}>
@@ -152,14 +161,15 @@ function GuessThePic() {
           {status === "lost" && (
             <>
               <p className={styles.verdict}>
-                טעות. זה היה {round.subject.answer.he}.
+                טעות. זה היה {round.subject.answer.he} — עונש של {MISS_PENALTY}{" "}
+                נקודות.
               </p>
               <p className={styles.runScore}>
-                הריצה נגמרה בתמונה {pictureNumber} מתוך {runLength}, אז אין
-                ניקוד. רק ריצה מלאה נספרת.
+                סה״כ בריצה: {runSpent} נקודות · נשארו{" "}
+                {runLength - pictureNumber} תמונות.
               </p>
-              <button type="button" className={styles.action} onClick={restart}>
-                ריצה חדשה
+              <button type="button" className={styles.action} onClick={next}>
+                התמונה הבאה
               </button>
             </>
           )}

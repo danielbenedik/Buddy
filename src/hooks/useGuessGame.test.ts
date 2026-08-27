@@ -1,6 +1,6 @@
 import { renderHook, act } from "@testing-library/react";
 
-import { RUN_LENGTH } from "../utils/constants";
+import { MISS_PENALTY, RUN_LENGTH } from "../utils/constants";
 
 import { useGuessGame } from "./useGuessGame";
 
@@ -22,6 +22,7 @@ const mockRound: GuessRound = {
   subject: mockSubject,
   imageUrl: "https://example.test/a.jpg",
   aspect: 1.5,
+  gridSize: 10,
   costs: new Array(100).fill(3),
   boardTotal: 300,
   options: [mockSubject.answer, ...mockSubject.decoys],
@@ -85,19 +86,51 @@ test("does not double-count the live picture once it is solved", async () => {
   expect(result.current.runTotal).toBe(3);
 });
 
-test("a wrong guess ends the run and records nothing", async () => {
+test("a wrong guess costs a penalty and the run continues", async () => {
   const { result } = await startedGame();
 
-  await clearPicture(result, 1);
   await act(async () => {
-    result.current.next();
+    result.current.reveal(0); // 3 points
   });
   await act(async () => {
     result.current.guess(mockSubject.decoys[0]);
   });
 
   expect(result.current.status).toBe("lost");
+  expect(result.current.runTotal).toBe(3 + MISS_PENALTY);
   expect(result.current.bestRun).toBeNull();
+
+  await act(async () => {
+    result.current.next();
+  });
+  expect(result.current.status).toBe("playing");
+  expect(result.current.pictureNumber).toBe(2);
+});
+
+test("a run with a miss still finishes and can set a record", async () => {
+  const { result } = await startedGame();
+
+  // Miss the first picture cold, then clear the rest with one tile each.
+  await act(async () => {
+    result.current.guess(mockSubject.decoys[0]);
+  });
+  await act(async () => {
+    result.current.next();
+  });
+  for (let i = 1; i < RUN_LENGTH; i += 1) {
+    await clearPicture(result, 1);
+    if (i < RUN_LENGTH - 1) {
+      await act(async () => {
+        result.current.next();
+      });
+    }
+  }
+
+  expect(result.current.status).toBe("finished");
+  expect(result.current.isNewRecord).toBe(true);
+  expect(result.current.bestRun?.score).toBe(
+    MISS_PENALTY + (RUN_LENGTH - 1) * 3,
+  );
 });
 
 // Plays a whole run, revealing `perPicture` tiles on each picture.
