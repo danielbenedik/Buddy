@@ -104,6 +104,49 @@
   color: t.$text-dim;
 }
 
+// Compact mobile layout: on a phone the header, board, and answers must share
+// one screen, so every non-essential pixel goes to the board and the options.
+@media (max-width: 520px) {
+  .game {
+    padding: 10px 10px 0;
+    gap: 8px;
+  }
+
+  .title {
+    font-size: 17px;
+  }
+
+  .sub {
+    display: none;
+  }
+
+  .stats {
+    gap: 12px;
+    font-size: 12px;
+  }
+
+  .stat b {
+    font-size: 13px;
+  }
+
+  .category {
+    font-size: 12px;
+  }
+
+  .result {
+    padding: 10px;
+  }
+
+  .verdict {
+    font-size: 14px;
+  }
+
+  .action {
+    margin-top: 8px;
+    padding: 9px 18px;
+  }
+}
+
 .spinner {
   width: 28px;
   height: 28px;

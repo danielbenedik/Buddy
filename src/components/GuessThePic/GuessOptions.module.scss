@@ -37,8 +37,15 @@
   color: t.$text;
 }
 
+// Stay 2x2 on phones — a single column pushed half the answers below the fold.
+// Slimmer buttons keep all four visible under the board.
 @media (max-width: 520px) {
   .options {
-    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .option {
+    padding: 10px 8px;
+    font-size: 13px;
   }
 }

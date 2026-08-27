@@ -9,6 +9,12 @@
   aspect-ratio: var(--aspect);
   max-width: calc(62vh * var(--aspect));
   margin: 0 auto;
+
+  // On a phone the header and answers need their share of the screen, so the
+  // board gets a tighter height budget — tall portraits shrink to fit.
+  @media (max-width: 520px) {
+    max-width: calc(44vh * var(--aspect));
+  }
   border-radius: t.$radius-lg;
   overflow: hidden;
   background: t.$surface-raised;
@@ -35,9 +41,15 @@
   padding: 0;
   cursor: pointer;
   background: t.$surface;
-  color: t.$text-muted;
-  font-size: clamp(8px, 1.4vw, 12px);
-  font-weight: 600;
+  color: t.$text;
+  // Sized off the tile itself: the board is at most 588px wide, so a tile is
+  // roughly its width divided by the column count.
+  font-size: clamp(
+    11px,
+    calc(min(100vw - 32px, 588px) / var(--cols, 10) * 0.3),
+    22px
+  );
+  font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -48,7 +60,6 @@
 
 .tile:hover:not(:disabled) {
   background: t.$surface-raised;
-  color: t.$text;
 }
 
 .tile:disabled {
@@ -62,4 +73,7 @@
 
 .cost {
   pointer-events: none;
+  // Lifts the digit off the flat tile so it stays crisp at small sizes.
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  opacity: 0.95;
 }

@@ -1,4 +1,4 @@
-import { GUESS_COLS, GUESS_ROWS, TARGET_BOARD_TOTAL } from "./constants";
+import { TARGET_TILE_COST } from "./constants";
 import {
   boardTotal,
   costsFromImportance,
@@ -6,7 +6,8 @@ import {
   isDegenerate,
 } from "./guessCost";
 
-const TILES = GUESS_ROWS * GUESS_COLS;
+const SIZE = 10;
+const TILES = SIZE * SIZE;
 
 describe("isDegenerate", () => {
   test("rejects a missing box", () => {
@@ -25,34 +26,44 @@ describe("isDegenerate", () => {
 describe("importanceFromBoxes", () => {
   test("scores cells inside the subject above cells outside it", () => {
     // Subject fills the bottom half of the frame.
-    const scores = importanceFromBoxes({
-      subject: [500, 0, 1000, 1000],
-      details: [],
-    });
+    const scores = importanceFromBoxes(
+      { subject: [500, 0, 1000, 1000], details: [] },
+      SIZE,
+    );
     expect(scores).toHaveLength(TILES);
 
-    const topRow = scores.slice(0, GUESS_COLS);
-    const bottomRow = scores.slice(-GUESS_COLS);
+    const topRow = scores.slice(0, SIZE);
+    const bottomRow = scores.slice(-SIZE);
     topRow.forEach((s) => expect(s).toBe(0));
     bottomRow.forEach((s) => expect(s).toBeGreaterThan(0));
   });
 
+  test("scales to the requested grid size", () => {
+    const scores = importanceFromBoxes(
+      { subject: [500, 0, 1000, 1000], details: [] },
+      5,
+    );
+    expect(scores).toHaveLength(25);
+    scores.slice(0, 5).forEach((s) => expect(s).toBe(0));
+    scores.slice(-5).forEach((s) => expect(s).toBeGreaterThan(0));
+  });
+
   test("detail boxes outrank plain subject coverage", () => {
-    const scores = importanceFromBoxes({
-      subject: [0, 0, 1000, 1000],
-      details: [[0, 0, 250, 250]],
-    });
+    const scores = importanceFromBoxes(
+      { subject: [0, 0, 1000, 1000], details: [[0, 0, 250, 250]] },
+      SIZE,
+    );
     // A full-frame subject is degenerate, so only the detail cell scores.
-    expect(scores[0]).toBeGreaterThan(scores[GUESS_COLS - 1]);
+    expect(scores[0]).toBeGreaterThan(scores[SIZE - 1]);
   });
 
   test("a cell on both subject and detail beats subject alone", () => {
     const [withDetail, withoutDetail] = [
-      importanceFromBoxes({
-        subject: [0, 0, 1000, 500],
-        details: [[0, 0, 250, 250]],
-      }),
-      importanceFromBoxes({ subject: [0, 0, 1000, 500], details: [] }),
+      importanceFromBoxes(
+        { subject: [0, 0, 1000, 500], details: [[0, 0, 250, 250]] },
+        SIZE,
+      ),
+      importanceFromBoxes({ subject: [0, 0, 1000, 500], details: [] }, SIZE),
     ];
     expect(withDetail[0]).toBeGreaterThan(withoutDetail[0]);
   });
@@ -73,8 +84,9 @@ describe("costsFromImportance", () => {
     );
     // Ladder snapping costs some precision, but both boards must still land
     // near the target so run scores stay comparable.
+    const target = TILES * TARGET_TILE_COST;
     [flat, peaked].forEach((total) => {
-      const drift = Math.abs(total - TARGET_BOARD_TOTAL) / TARGET_BOARD_TOTAL;
+      const drift = Math.abs(total - target) / target;
       expect(drift).toBeLessThan(0.2);
     });
   });

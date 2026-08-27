@@ -263,10 +263,12 @@ export function shuffle<T>(items: T[]): T[] {
   return out;
 }
 
+// The boxes are grid-agnostic, so one cached entry serves every grid size the
+// subject may land on across runs.
 interface CachedBoard {
   imageUrl: string;
-  costs: number[];
   aspect: number;
+  boxes: SubjectBoxes | null;
 }
 
 interface ResolvedImage {
@@ -286,12 +288,14 @@ function writeBoard(subject: GuessSubject, board: CachedBoard): void {
 function toRound(
   subject: GuessSubject,
   board: CachedBoard,
-  costs = board.costs,
+  gridSize: number,
+  costs: number[],
 ): GuessRound {
   return {
     subject,
     imageUrl: board.imageUrl,
     aspect: board.aspect,
+    gridSize,
     costs,
     boardTotal: boardTotal(costs),
     options: shuffle([subject.answer, ...subject.decoys]),
@@ -312,13 +316,37 @@ async function resolveImage(subject: GuessSubject): Promise<ResolvedImage> {
   return { subject, imageUrl, aspect };
 }
 
-function costsFromBoxes(boxes: SubjectBoxes | null): number[] | null {
+function costsFromBoxes(
+  boxes: SubjectBoxes | null,
+  gridSize: number,
+): number[] | null {
   if (!boxes) return null;
   if (isDegenerate(boxes.subject) && !boxes.details.length) return null;
-  return costsFromImportance(importanceFromBoxes(boxes));
+  return costsFromImportance(importanceFromBoxes(boxes, gridSize));
 }
 
-// One vision call prices the whole group; each board is cached as it lands, so
+// Boxes -> pixel heuristic -> flat board, priced for this round's grid. The
+// pixel fallback is local canvas work, cheap enough to redo per grid size.
+async function costsFor(
+  board: CachedBoard,
+  gridSize: number,
+): Promise<number[]> {
+  const fromBoxes = costsFromBoxes(board.boxes, gridSize);
+  if (fromBoxes) return fromBoxes;
+
+  try {
+    return costsFromImportance(
+      await importanceFromPixels(board.imageUrl, gridSize),
+    );
+  } catch {
+    // Last resort: a flat board keeps the round playable.
+    return costsFromImportance(
+      importanceFromBoxes({ subject: null, details: [] }, gridSize),
+    );
+  }
+}
+
+// One vision call boxes the whole group; each board is cached as it lands, so
 // the pictures the player never reaches are still paid for only once.
 async function priceGroup(group: ResolvedImage[]): Promise<void> {
   const boxes = await fetchBoxesBatch(
@@ -328,40 +356,32 @@ async function priceGroup(group: ResolvedImage[]): Promise<void> {
     })),
   );
 
-  await Promise.all(
-    group.map(async (item, i) => {
-      let costs = costsFromBoxes(boxes[i]);
-      if (!costs) {
-        try {
-          costs = costsFromImportance(
-            await importanceFromPixels(item.imageUrl),
-          );
-        } catch {
-          return; // leave it uncached; it will be retried or fall back later
-        }
-      }
-      writeBoard(item.subject, {
-        imageUrl: item.imageUrl,
-        costs,
-        aspect: item.aspect,
-      });
-    }),
-  );
+  group.forEach((item, i) => {
+    writeBoard(item.subject, {
+      imageUrl: item.imageUrl,
+      aspect: item.aspect,
+      boxes: boxes[i],
+    });
+  });
 }
 
 /**
- * Builds the round for `subject`. `upcoming` are the next subjects in the run:
- * any that still need pricing ride along in the same vision call, which is what
- * turns one request per subject into one per small group.
+ * Builds the round for `subject` on a `gridSize` x `gridSize` board. `upcoming`
+ * are the next subjects in the run: any that still need boxing ride along in
+ * the same vision call, which is what turns one request per subject into one
+ * per small group.
  */
 export async function buildRound(
   subject: GuessSubject,
+  gridSize: number,
   upcoming: GuessSubject[] = [],
 ): Promise<GuessRound> {
   assertConfigured();
 
   const cached = readBoard(subject);
-  if (cached) return toRound(subject, cached);
+  if (cached) {
+    return toRound(subject, cached, gridSize, await costsFor(cached, gridSize));
+  }
 
   const target = await resolveImage(subject);
 
@@ -381,30 +401,14 @@ export async function buildRound(
   try {
     await priceGroup(group);
   } catch {
-    // Batch failed outright — fall back to scoring this subject alone.
+    // Batch failed outright — fall through to an uncached, boxless board so one
+    // bad moment isn't frozen in for 30 days.
   }
 
-  const board = readBoard(subject);
-  if (board) return toRound(subject, board);
-
-  // The batch call itself failed, so the pixel heuristic hasn't run yet.
-  try {
-    const costs = costsFromImportance(
-      await importanceFromPixels(target.imageUrl),
-    );
-    const scored = { imageUrl: target.imageUrl, costs, aspect: target.aspect };
-    writeBoard(subject, scored);
-    return toRound(subject, scored);
-  } catch {
-    // Last resort: a flat board keeps the round playable, and is deliberately
-    // left uncached so one bad moment isn't frozen in for 30 days.
-    const costs = costsFromImportance(
-      importanceFromBoxes({ subject: null, details: [] }),
-    );
-    return toRound(
-      subject,
-      { imageUrl: target.imageUrl, costs, aspect: target.aspect },
-      costs,
-    );
-  }
+  const board = readBoard(subject) ?? {
+    imageUrl: target.imageUrl,
+    aspect: target.aspect,
+    boxes: null,
+  };
+  return toRound(subject, board, gridSize, await costsFor(board, gridSize));
 }

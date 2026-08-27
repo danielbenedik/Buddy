@@ -1,9 +1,4 @@
-import {
-  COST_LADDER,
-  GUESS_COLS,
-  GUESS_ROWS,
-  TARGET_BOARD_TOTAL,
-} from "./constants";
+import { COST_LADDER, TARGET_TILE_COST } from "./constants";
 
 import type { Box, SubjectBoxes } from "../types/guess";
 
@@ -32,12 +27,12 @@ function boxToRect([ymin, xmin, ymax, xmax]: Box): Rect {
   };
 }
 
-function cellRect(row: number, col: number): Rect {
+function cellRect(row: number, col: number, size: number): Rect {
   return {
-    x0: col / GUESS_COLS,
-    y0: row / GUESS_ROWS,
-    x1: (col + 1) / GUESS_COLS,
-    y1: (row + 1) / GUESS_ROWS,
+    x0: col / size,
+    y0: row / size,
+    x1: (col + 1) / size,
+    y1: (row + 1) / size,
   };
 }
 
@@ -64,14 +59,17 @@ export function isDegenerate(box: Box | null): boolean {
   return area > 0.9 || area < 0.005;
 }
 
-export function importanceFromBoxes(boxes: SubjectBoxes): number[] {
+export function importanceFromBoxes(
+  boxes: SubjectBoxes,
+  size: number,
+): number[] {
   const usable = isDegenerate(boxes.subject) ? [] : [boxes.subject as Box];
   const details = boxes.details.filter((b) => !isDegenerate(b));
 
   const scores: number[] = [];
-  for (let row = 0; row < GUESS_ROWS; row += 1) {
-    for (let col = 0; col < GUESS_COLS; col += 1) {
-      const cell = cellRect(row, col);
+  for (let row = 0; row < size; row += 1) {
+    for (let col = 0; col < size; col += 1) {
+      const cell = cellRect(row, col, size);
       let score = 0;
       usable.forEach((b) => {
         score += SUBJECT_WEIGHT * coverage(cell, boxToRect(b));
@@ -92,11 +90,12 @@ function nearestLadder(value: number): number {
 }
 
 // Importance (0-1 per cell) -> tile costs snapped to the ladder. Scaled so the
-// whole board lands near TARGET_BOARD_TOTAL, keeping runs comparable.
+// whole board lands near tiles * TARGET_TILE_COST, keeping boards of the same
+// size comparable.
 export function costsFromImportance(importance: number[]): number[] {
   const raw = importance.map((i) => FLOOR + (1 - FLOOR) * i);
   const sum = raw.reduce((a, b) => a + b, 0);
-  const scale = sum > 0 ? TARGET_BOARD_TOTAL / sum : 1;
+  const scale = sum > 0 ? (importance.length * TARGET_TILE_COST) / sum : 1;
   return raw.map((r) => nearestLadder(r * scale));
 }
 
