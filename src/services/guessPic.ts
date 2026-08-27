@@ -6,7 +6,6 @@ import {
   cacheKeys,
   GUESS_BOARD_TTL,
   GUESS_POOL_SIZE,
-  GUESS_POOL_TTL,
   guessBoxesBatchPrompt,
   guessPoolPrompt,
   MAX_BOARD_ASPECT,
@@ -133,18 +132,11 @@ export function hasApiKey(): boolean {
   return isConfigured;
 }
 
-// One Gemini call per day feeds a whole pool of rounds. `force` skips the cache
-// to fetch fresh subjects when a long streak exhausts the current pool.
-export async function getSubjectPool(force = false): Promise<GuessSubject[]> {
+// Deliberately uncached: every run should bring a fresh, random set of
+// subjects instead of replaying the day's pool. The boards themselves stay
+// cached, so a subject that does repeat across runs is still priced once.
+export async function getSubjectPool(): Promise<GuessSubject[]> {
   assertConfigured();
-
-  const now = new Date();
-  const dateKey = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
-  const cacheKey = cacheKeys.guessPool(dateKey);
-  if (!force) {
-    const cached = getCached<GuessSubject[]>(cacheKey);
-    if (cached?.length) return cached;
-  }
 
   const seed = Math.random().toString(36).slice(2, 10);
   const response = await ai.models.generateContent({
@@ -166,7 +158,6 @@ export async function getSubjectPool(force = false): Promise<GuessSubject[]> {
     .filter((s) => s.wikiTitle && s.decoys.length === 3);
 
   if (!subjects.length) throw new Error("No game subjects returned");
-  setCached(cacheKey, subjects, GUESS_POOL_TTL);
   return subjects;
 }
 

@@ -1,5 +1,3 @@
-import { useEffect, useRef } from "react";
-
 import { useGuessGame } from "../../hooks/useGuessGame";
 import { MISS_PENALTY } from "../../utils/constants";
 
@@ -28,8 +26,6 @@ function GuessThePic() {
     restart,
   } = useGuessGame();
 
-  const resultRef = useRef<HTMLDivElement>(null);
-
   // Once the run has already cost more than the record, beating it is out of
   // reach — worth showing while there's still a run to abandon or push through.
   const overRecord = bestRun !== null && runTotal > bestRun.score;
@@ -40,17 +36,6 @@ function GuessThePic() {
         year: "2-digit",
       })
     : null;
-
-  // The verdict sits below the board, so on a phone it can land off-screen —
-  // bring it into view so the answer is never missed.
-  useEffect(() => {
-    if (status !== "playing") {
-      resultRef.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-      });
-    }
-  }, [status]);
 
   if (error) {
     return (
@@ -115,15 +100,12 @@ function GuessThePic() {
         {round.subject.category}
       </p>
 
-      <GuessOptions
-        options={round.options}
-        answer={round.subject.answer}
-        status={status}
-        onGuess={guess}
-      />
-
-      {status !== "playing" && (
-        <div className={styles.result} dir="rtl" lang="he" ref={resultRef}>
+      {/* The verdict takes the options' place — the answer is settled, and
+          swapping in place keeps it on-screen without scrolling on a phone. */}
+      {status === "playing" ? (
+        <GuessOptions options={round.options} onGuess={guess} />
+      ) : (
+        <div className={styles.result} dir="rtl" lang="he">
           {status === "won" && (
             <>
               <p className={styles.verdict}>

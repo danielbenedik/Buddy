@@ -84,7 +84,6 @@ export const SUMMARY_TTL = 7 * DAY;
 export const COVER_TTL = 30 * DAY;
 export const SEARCH_TTL = 7 * DAY;
 export const FUNFACT_TTL = DAY;
-export const GUESS_POOL_TTL = DAY;
 export const GUESS_BOARD_TTL = 30 * DAY;
 
 export const cacheKeys = {
@@ -101,7 +100,6 @@ export const cacheKeys = {
   search: (media: MediaType, query: string) =>
     `buddy:search:${media}:${query.trim().toLowerCase()}`,
   funFact: (dateKey: string) => `buddy:funfact:${dateKey}`,
-  guessPool: (dateKey: string) => `buddy:guess:pool:v2:${dateKey}`,
   // Image + bounding boxes are stable per subject, so they outlive the daily
   // pool. v3: stores boxes instead of costs — the grid size now varies per
   // picture, so costs are derived per size at round build time.

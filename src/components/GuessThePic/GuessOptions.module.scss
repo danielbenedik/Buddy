@@ -26,17 +26,6 @@
   border-color: t.$accent;
 }
 
-.option:disabled {
-  cursor: default;
-  color: t.$text-dim;
-}
-
-.correct {
-  background: rgba(45, 122, 74, 0.35);
-  border-color: #2d7a4a;
-  color: t.$text;
-}
-
 // Stay 2x2 on phones — a single column pushed half the answers below the fold.
 // Slimmer buttons keep all four visible under the board.
 @media (max-width: 520px) {
